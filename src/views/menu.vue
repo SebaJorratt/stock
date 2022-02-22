@@ -2,8 +2,8 @@
     <div class="menu">
         <navbar />
         <b-container><br>
-            <h1>Sistema de Stock de Bodegas</h1>
-            <div class="mt-5">
+            <h1 class="mt-2">Sistema de Stock de Bodegas</h1>
+            <div class="mt-4">
                 <b-row>
                     <b-col cols="12" md="6">
                         <img src="../assets/bodegas.png" class="imagen">
