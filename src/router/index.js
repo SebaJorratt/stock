@@ -14,6 +14,31 @@ const routes = [
     path: '/menu',
     name: 'menu',
     component: () => import('../views/menu.vue'),
+  },
+  {
+    path: '/insumos',
+    name: 'insumos',
+    component: () => import('../views/insumos.vue'),
+  },
+  {
+    path: '/productos',
+    name: 'productos',
+    component: () => import('../views/productos.vue'),
+  },
+  {
+    path: '/dependencias',
+    name: 'dependencias',
+    component: () => import('../views/dependencias.vue'),
+  },
+  {
+    path: '/funcionarios',
+    name: 'funcionarios',
+    component: () => import('../views/funcionarios.vue'),
+  },
+  {
+    path: '/bodegas',
+    name: 'bodegas',
+    component: () => import('../views/bodegas.vue'),
   }
 ]
 

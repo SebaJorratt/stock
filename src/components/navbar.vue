@@ -8,10 +8,11 @@
                     <router-link to="/menu"> <img src="../assets/logoborde.png" alt="" width="50px" class="iconJunji">  <b-navbar-brand > Sistema de Stock</b-navbar-brand></router-link> 
                      <b-collapse id="nav-collapse" is-nav>
                          <b-navbar-nav>
-                            <b-nav-item >Lista de equipos</b-nav-item>
-                            <b-nav-item >Agregar Equipo</b-nav-item>
-                            <b-nav-item >Funcionarios</b-nav-item>
-                            <b-nav-item >Dependencia</b-nav-item>
+                            <b-nav-item :to="{name: 'insumos'}">Entrega de Insumos </b-nav-item>
+                            <b-nav-item :to="{name: 'productos'}">Productos</b-nav-item>
+                            <b-nav-item :to="{name: 'dependencias'}">Dependencias</b-nav-item>
+                            <b-nav-item :to="{name: 'funcionarios'}">Funcionarios</b-nav-item>
+                            <b-nav-item :to="{name: 'bodegas'}">Bodegas</b-nav-item>
                         </b-navbar-nav>
                         <b-navbar-nav class="ml-auto">
                             <b-nav-form>
