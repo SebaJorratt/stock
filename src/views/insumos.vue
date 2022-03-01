@@ -48,8 +48,8 @@
                     <b-row class="mt-2" v-for="i in productos" :key="i.key">
                         <b-col cols="12" md="4">
                             <label for="exampleInputEmail1" class="form-label">Producto</label>
-                            <select class="form-control" @change="cambioProducto(i.producto, i.key)" v-model="i.producto">
-                                <option v-for="i in prods" :key="i.producto" :value="i.producto">{{i.producto}}</option>
+                            <select class="form-control" @change="cambioProducto(i.nomproducto, i.key)" v-model="i.nomproducto">
+                                <option v-for="i in prods" :key="i.nomproducto" :value="i.nomproducto">{{i.nomproducto}}</option>
                             </select>
                         </b-col>
                         <b-col cols="12" md="3">
@@ -85,7 +85,7 @@ export default {
       return {
         //Datos para agregar un nuevo memo (historial) con v-model
         cantidadProductos: 1,
-        productos: [{key: this.cantidadProductos, producto: '', cantidad: 1, stock: 0}],
+        productos: [{key: this.cantidadProductos, nomproducto: '', cantidad: 1, stock: 0}],
         prods: [],
         //Variables de las alertas
         dismissSecs: 5,
@@ -103,13 +103,13 @@ export default {
     methods:{
         //Metodo que Carga todos los productos del sistema
         cargarProductos(){
-            this.prods = [{producto: 'Bueno', stock: 20}, {producto: 'Regular', stock: 10}, {producto: 'Malo', stock: 5}]
-            this.productos[0].producto = this.prods[0].producto
+            this.prods = [{nomproducto: 'Bueno', stock: 20}, {nomproducto: 'Regular', stock: 10}, {nomproducto: 'Malo', stock: 5}]
+            this.productos[0].nomproducto = this.prods[0].nomproducto
             this.productos[0].stock = this.prods[0].stock
         },
         //Si se cambia un producto se debe buscar su stock
-        cambioProducto(producto, key){
-            const index = this.prods.findIndex(item => item.producto == producto);
+        cambioProducto(nomproducto, key){
+            const index = this.prods.findIndex(item => item.nomproducto == nomproducto);
             const index2 = this.productos.findIndex(item => item.key == key);
             console.log(index, index2)
             this.productos[index2].stock = this.prods[index].stock
@@ -117,8 +117,8 @@ export default {
         //Se agrega un nuevo posible producto
         agregaProducto(){
             this.cantidadProductos++
-            this.productos.push({key: this.cantidadProductos, producto: '', cantidad: 1, stock: 0});
-            this.productos[this.productos.length-1].producto = this.prods[0].producto
+            this.productos.push({key: this.cantidadProductos, nomproducto: '', cantidad: 1, stock: 0});
+            this.productos[this.productos.length-1].nomproducto = this.prods[0].nomproducto
             this.productos[this.productos.length-1].stock = this.prods[0].stock
         },
         //Se quita un Producto de los que serán agregados al sistema

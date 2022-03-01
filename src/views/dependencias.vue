@@ -73,11 +73,7 @@
                             <b-col cols="12" md="6">
                                 <label for="exampleInputEmail1" class="form-label">Comuna de la Dependencia</label>
                                 <select class="form-control" v-model="comunaAgregar">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in comunas" :key="i">{{i}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="6">
@@ -122,11 +118,7 @@
                             <b-col cols="12" md="6">
                                 <label for="exampleInputEmail1" class="form-label">Comuna de la Dependencia</label>
                                 <select class="form-control" v-model="comuna">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in comunas" :key="i">{{i}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="6">
@@ -193,6 +185,8 @@ export default {
         pestaña: 'dependencias',
         dependencias: [],
         historial: [],
+        comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
+                'Punitaqui', 'Río Hurtado'],
         //Variables del AGREGAR
         codDependenciaAgregar: '',
         nomDependenciaAgregar: '',
@@ -223,6 +217,7 @@ export default {
     },
     created(){
         this.cargarDependencias();
+        this.comunaAgregar = this.comunas[0];
     },
     methods:{
         //Función que carga todas las dependencias
