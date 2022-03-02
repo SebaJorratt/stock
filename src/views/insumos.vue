@@ -20,22 +20,14 @@
                     <b-row class="mt-2">
                         <b-col cols="12" md="4">
                             <label for="exampleInputEmail1" class="form-label">Dependencia</label>
-                            <select class="form-control">
-                                <option disabled value="">Seleccione un estado posible</option>
-                                <option>Bueno</option>
-                                <option>Regular</option>
-                                <option>Malo</option>
-                                <option>Baja</option>
+                            <select class="form-control" v-model="$v.dependencia.$model">
+                                <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                             </select>
                         </b-col>
                         <b-col cols="12" md="4">
                             <label for="exampleInputEmail1" class="form-label">Funcionario</label>
-                            <select class="form-control">
-                                <option disabled value="">Seleccione un estado posible</option>
-                                <option>Bueno</option>
-                                <option>Regular</option>
-                                <option>Malo</option>
-                                <option>Baja</option>
+                            <select class="form-control" v-model="funcionario">
+                                <option v-for="i in funcionarios" :key="i.nomFuncionario" :value="i.nomFuncionario">{{i.nomFuncionario}}</option>
                             </select>
                         </b-col>
                         <b-col cols="12" md="2">
@@ -48,20 +40,20 @@
                     <b-row class="mt-2" v-for="i in productos" :key="i.key">
                         <b-col cols="12" md="4">
                             <label for="exampleInputEmail1" class="form-label">Producto</label>
-                            <select class="form-control" @change="cambioProducto(i.nomproducto, i.key)" v-model="i.nomproducto">
-                                <option v-for="i in prods" :key="i.nomproducto" :value="i.nomproducto">{{i.nomproducto}}</option>
+                            <select class="form-control" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
                             </select>
                         </b-col>
                         <b-col cols="12" md="3">
                             <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
-                            <input type="number" @change="cantMin(i.cantidad)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
+                            <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                         </b-col>
                         <b-col cols="12" md="3">
                             <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
                             <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
                         </b-col>
                         <b-col cols="12" md="2">
-                            <b-button class="btn-success boton">Detalles Producto</b-button>
+                            <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
                         </b-col>
                     </b-row>
                     <b-row>
@@ -69,6 +61,30 @@
                     </b-row>
                 </div>
             </div>
+            <b-modal id="modal-1" title="Detalles del Producto">
+                <div class="card-body">
+                        <b-row class="mt-2">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Nombre</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Marca</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-4">
+                            <b-col cols="12" md="12">
+                                <label for="exampleInputEmail1" class="form-label">Descripcion</label>
+                                <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
+                            </b-col>
+                        </b-row>
+                    </div>
+            </b-modal>
         </b-container>
     </div>
 </template>
@@ -85,41 +101,126 @@ export default {
       return {
         //Datos para agregar un nuevo memo (historial) con v-model
         cantidadProductos: 1,
-        productos: [{key: this.cantidadProductos, nomproducto: '', cantidad: 1, stock: 0}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: ''}],
         prods: [],
+        //Variable para las dependencias 
+        dependencias: [],
+        dependencia: '',
+        //Variables para indicar al funcionario
+        funcionarios: [],
+        funcionario: '',
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
-        mensaje: {color: '', texto: ''}
+        mensaje: {color: '', texto: ''},
+        //VARIABLES DE DETALLES
+        codigo: '',
+        producto: '',
+        marca: '',
+        descripcion: '',
       }
     },
     validations:{
       //Validaciones de los input
-      
+      dependencia: {required}
     },
     created(){
-        this.cargarProductos();
+        this.cargarProductos(true);
+        this.cargarDependencias();
+        this.cargarFuncionarios();
     },
     methods:{
         //Metodo que Carga todos los productos del sistema
-        cargarProductos(){
-            this.prods = [{nomproducto: 'Bueno', stock: 20}, {nomproducto: 'Regular', stock: 10}, {nomproducto: 'Malo', stock: 5}]
-            this.productos[0].nomproducto = this.prods[0].nomproducto
-            this.productos[0].stock = this.prods[0].stock
+        cargarProductos(primera){
+            this.axios.get('api/obtenerProductos')
+            .then(res => {
+                this.prods = res.data;
+                if(primera){
+                    this.productos[0].nomProducto = this.prods[0].nomProducto
+                    this.productos[0].stock = this.prods[0].stock
+                    this.productos[0].codigoBarra = this.prods[0].codigoBarra
+                }
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Productos');
+            })
+        },
+        //Función que se encargar de cargar las dependencias
+        cargarDependencias(){
+            this.axios.get('api/obtenerDependencias')
+            .then(res => {
+                this.dependencias = res.data;
+                this.dependencia = this.dependencias[0].nomDependencia;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar las Dependencias');
+            })
+        },
+        //Función que se encargar de cargar las dependencias
+        cargarFuncionarios(){
+            this.axios.get('api/obtenerFuncionarios')
+            .then(res => {
+                this.funcionarios = res.data;
+                this.funcionario = this.funcionarios[0].nomFuncionario;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Funcionarios');
+            })
         },
         //Si se cambia un producto se debe buscar su stock
-        cambioProducto(nomproducto, key){
-            const index = this.prods.findIndex(item => item.nomproducto == nomproducto);
-            const index2 = this.productos.findIndex(item => item.key == key);
-            console.log(index, index2)
-            this.productos[index2].stock = this.prods[index].stock
+        cambioProducto(nomProducto, key){
+            /*
+                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index2 = this.productos.findIndex(item => item.key == key);
+                this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                if(this.productos[index2].cantidad > this.productos[index2].stock){
+                    this.productos[index2].cantidad = this.productos[index2].stock;
+                }
+            */
+            const indexRepetido = this.productos.findIndex(item => item.nomProducto == nomProducto);
+            if(indexRepetido == this.productos.length-1){
+                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index2 = this.productos.findIndex(item => item.key == key);
+                this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                if(this.productos[index2].cantidad > this.productos[index2].stock){
+                    this.productos[index2].cantidad = this.productos[index2].stock;
+                }
+            }else{
+                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index2 = this.productos.findIndex(item => item.key == key);
+                this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                if(this.productos[index2].cantidad > this.productos[index2].stock){
+                    this.productos[index2].cantidad = this.productos[index2].stock;
+                }
+            }
         },
         //Se agrega un nuevo posible producto
+        //ADEMAS debe revisar si los valores anteriores estan repetidos
         agregaProducto(){
             this.cantidadProductos++
-            this.productos.push({key: this.cantidadProductos, nomproducto: '', cantidad: 1, stock: 0});
-            this.productos[this.productos.length-1].nomproducto = this.prods[0].nomproducto
-            this.productos[this.productos.length-1].stock = this.prods[0].stock
+            var a = 0;
+            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0});
+            while(a < this.prods.length){
+                const index = this.productos.findIndex(item => item.nomProducto == this.prods[a].nomProducto);
+                if(index != -1){
+                    a++;
+                }else{
+                    this.productos[this.productos.length-1].nomProducto = this.prods[a].nomProducto
+                    this.productos[this.productos.length-1].stock = this.prods[a].stock
+                    this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].key = this.cantidadProductos
+                    break;
+                }
+                if(a == this.prods.length){
+                    this.cantidadProductos--;
+                    this.productos.splice(-1);
+                    this.alerta('danger','No existen mas productos para agregar')
+                    break;
+                }
+            } 
         },
         //Se quita un Producto de los que serán agregados al sistema
         quitarProducto(){
@@ -131,31 +232,145 @@ export default {
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
-        cantMin(cantidad){
-            const index = this.productos.findIndex(item => item.cantidad == cantidad);
-            if(cantidad < 1){
+        cantMin(producto){
+            const index = this.productos.findIndex(item => item.key == producto);
+            if(this.productos[index].cantidad < 1){
                 this.productos[index].cantidad = 1;
+            } else if(this.productos[index].cantidad > this.productos[index].stock){
+                this.productos[index].cantidad = this.productos[index].stock;
             }
         },
+        convertDateMysql(yourDate){
+            yourDate.toISOString().split('T')[0]
+            const offset = yourDate.getTimezoneOffset()
+            yourDate = new Date(yourDate.getTime() - (offset*60*1000))
+            return yourDate.toISOString().split('T')[0]
+		},
+        //Función que permite generar un informe y enviar los datos de un nuevo HISTORIAL 
         generarInforme(){
-
+            var dt = this.convertDateMysql(new Date())
+            swal.fire({
+            title: '¿Seguro que desea asignar este equipo al usuario ' + this.dueño + '?',
+            type: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            cancelButtonText: 'Cancelar',
+            confirmButtonText: '¡Si!'
+            }).then((result) => {
+                if (result.value) {
+                    this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        this.HistorialProducto();
+                        this.restarStock();
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado crear ',
+                        footer: 'Algún dato ha sido incorrecto verifiquelos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado registrar la entrega de insumos',
+                        footer: 'Posible error del sistema'
+                    })
+                    }) 
+                }
+            })
         },
+        //Registra los productos de esta ENTREGA DE INSUMOS 
         HistorialProducto(){
-
+            for(var i = 0; i<this.productos.length; i++){
+                this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        Swal.fire(
+                        'Se ha registrado la entrega de insumos correctamente',
+                        'Seleccione Ok para continuar',
+                        'success'
+                        )
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado crear ',
+                        footer: 'Algún dato ha sido incorrecto verifiquelos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado registrar la entrega de insumos',
+                        footer: 'Posible error del sistema'
+                    })
+                    })
+            }
+        },
+        //Resta los stock de cada producto
+        restarStock(){
+            for(var i = 0; i<this.productos.length; i++){
+                this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad})
+                    .then(res => {
+                        this.actualizarStock();
+                    })
+                    .catch(e => {
+                        var mensaje = 'Posible error del sistema';
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado registrar la entrega de insumos',
+                        footer: mensaje
+                        })
+                    })
+            }
+        },
+        //Actualiza la pagina tras generar una entrega de insumos
+        actualizarStock(){
+            for(var i = 0; i<this.productos.length-1; i++){
+                this.cantidadProductos--;
+                this.productos.splice(-1);
+            }
+            this.cargarProductos(true);
+        },
+        //Permite ver los detalles de un producto y los carga
+        detalles(id){
+            this.axios.get(`api/obtenerProducto/${id}`)
+                .then(res => {
+                    this.codigo = res.data[0].codigoBarra;
+                    this.producto = res.data[0].nomProducto;
+                    this.marca = res.data[0].marca;
+                    this.descripcion = res.data[0].descripcion
+                })
+                .catch(e => {
+                    Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'No se ha logrado encontrar los datos del equipo',
+                    footer: 'Posible error del sistema'
+                    })
+                })
         },
         //Funciones de la alerta
-      countDownChanged(dismissCountDown) {
-        this.dismissCountDown = dismissCountDown
-      },
-      showAlert() {
-        this.dismissCountDown = this.dismissSecs
-      },
-      alerta(color, texto){
-        this.mensaje.color = color;
-        this.mensaje.texto = texto;
-        this.showAlert();
-      },
-    }
+        countDownChanged(dismissCountDown) {
+            this.dismissCountDown = dismissCountDown
+        },
+        showAlert() {
+            this.dismissCountDown = this.dismissSecs
+        },
+        alerta(color, texto){
+            this.mensaje.color = color;
+            this.mensaje.texto = texto;
+            this.showAlert();
+        },
+    },
 }
 </script>
 

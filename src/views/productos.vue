@@ -26,6 +26,7 @@
                       <th scope="col">Marca</th>
                       <th scope="col">Stock DirecReg</th>
                       <th scope="col">Stock Bodegas</th>
+                      <th scope="col">Nombre Bodega</th>
                       <th scope="col">Edición</th>
                       <th scope="col">Historial Entregas</th>
                       <th scope="col">Ordenes de compras</th>
@@ -33,11 +34,12 @@
                   </thead>
                   <tbody>
                     <tr v-for="i in productos" :key="i.codigoBarra">
-                      <td scope="row">{{i.producto}}</td>
+                      <td scope="row">{{i.nomProducto}}</td>
                       <td>{{i.codigoBarra}}</td>
                       <td>{{i.marca}}</td>
                       <td>{{i.stock}}</td>
-                      <td>{{i.stockbodega}}</td>
+                      <td>{{i.stockBodega}}</td>
+                      <td>{{i.nomBodega}}</td>
                       <td><b-button @click="Acteditar(i.codigoBarra)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
                       <td><b-button @click="ActHist(i.codigoBarra)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
                       <td><b-button @click="ActOrdenes(i.codigoBarra)" class="btn-success btn-sm" style="border-color: white;">Ordenes</b-button></td>
@@ -71,6 +73,20 @@
                                 <label for="exampleInputEmail1" class="form-label">Descripcion del Productos</label>
                                 <textarea type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="$v.descripcionAgrega.$model"></textarea>
                                 <p class="text-danger" v-if="$v.descripcionAgrega.$error" >La descripción del Producto es Requerida</p>
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-4" v-for="i in bodegas" :key="i.nomBodega">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Nombre Bodega</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="i.nomBodega">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Stock de Bodega</label>
+                                <input type="number" @change="cantMin(i.stockBodega)" class="form-control" v-model="i.stockBodega">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
+                                <input type="number" @change="cantMinCritico(i.stockCritico)" class="form-control" v-model="i.stockCritico">
                             </b-col>
                         </b-row>
                         <b-row class="mt-5">
@@ -192,6 +208,8 @@ export default {
         productos: [],
         historial: [],
         ordenes: [],
+        bodegas: [],
+        bod: [],
         //Variables del AGREGAR
         codigoAgregar: '',
         productoAgregar: '',
@@ -221,11 +239,35 @@ export default {
     },
     created(){
         this.cargarProductos();
+        this.cargarBodegas();
     },
     methods:{
         //Funcion que carga todos los productos del sistema
         cargarProductos(){
-            this.productos = [{producto: 'Bueno', codigoBarra: '8797828291', marca: 'XD', descripcion: 'Buen producto', stock: 20, stockbodega: 40}, {producto: 'Regular', codigoBarra: '879782asd8291', marca: 'XDD', descripcion: 'no tan bueno producto', stock: 25, stockbodega: 42}]
+            this.axios.get('api/obtenerProductos')
+            .then(res => {
+                this.productos = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Productos');
+            })
+        },
+        //Función que se encarga de obtener todas las bodegas existentes
+        cargarBodegas(){
+            this.axios.get('api/obtenerbodegas')
+            .then(res => {
+                this.bod = res.data;
+                this.llenarBodegas();
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar las bodegas');
+            })
+        },
+        //Función que se encarga de establecer el stock de estas bodegas
+        llenarBodegas(){
+            for(var i = 0; i < this.bod.length; i++){
+                this.bodegas.push({nomBodega: this.bod[i].nomBodega, stockBodega: 1, stockCritico: 1})
+            }
         },
         //Función para regresar a la vista inicial
         Volver(){
@@ -257,8 +299,83 @@ export default {
             this.cargarOrdenes();
         },
         //Funciones de AGREGAR
+        //Función que se encarga de agregar un producto al sistema
         AgregarProducto(){
-            console.log('Agregar')
+            this.$v.$touch()
+            if(!this.$v.codigoAgregar.$invalid && !this.$v.productoAgregar.$invalid && !this.$v.marcaAgregar.$invalid && !this.$v.descripcionAgrega.$invalid){
+                this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        this.agregarStock();
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado este nuevo tipo',
+                        footer: 'Codigo o nombre de Producto ya utilizado'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado este nuevo tipo',
+                        footer: 'Posible error del sistema'
+                    })
+                    })
+            }else{
+                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos');
+            }
+        },
+        //Funcion que agrega el stock del Producto
+        agregarStock(){
+            for(var i = 0; i < this.bodegas.length; i++){
+                this.axios.post('api/agregaProductoBodega', {stockBodega: this.bodegas[i].stockBodega, stockCritico: this.bodegas[i].stockCritico, nomBodega: this.bodegas[i].nomBodega, codigoBarra: this.codigoAgregar})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        Swal.fire(
+                            'Se ha generado un nuevo Producto',
+                            'Seleccione Ok para continuar',
+                            'success'
+                        )
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado ingresar los stock del producto',
+                        footer: 'Error con el ingreso de Stocks'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha creado este nuevo tipo',
+                            footer: 'Posible error del sistema'
+                        })
+                    })
+            }
+        },
+        //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
+        cantMin(stockBodega){
+            const index = this.bodegas.findIndex(item => item.stockBodega == stockBodega);
+            if(stockBodega < 1){
+                this.bodegas[index].stockBodega = 1;
+            } else if(stockBodega < this.bodegas[index].stockCritico){
+                this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
+            }
+        },
+        //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
+        cantMinCritico(stockCritico){
+            const index = this.bodegas.findIndex(item => item.stockCritico == stockCritico);
+            if(stockCritico < 1){
+                this.bodegas[index].stockCritico = 1;
+            }else if(this.bodegas[index].stockBodega < stockCritico){
+                console.log(this.bodegas[index].stockBodega, stockCritico)
+                this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
+            }
         },
         //FUNCIONES PARA EDITAR
         ObtenerDatos(){
