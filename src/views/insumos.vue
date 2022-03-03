@@ -40,7 +40,7 @@
                     <b-row class="mt-2" v-for="i in productos" :key="i.key">
                         <b-col cols="12" md="4">
                             <label for="exampleInputEmail1" class="form-label">Producto</label>
-                            <select class="form-control" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                            <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
                                 <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
                             </select>
                         </b-col>
@@ -103,6 +103,7 @@ export default {
         cantidadProductos: 1,
         productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: ''}],
         prods: [],
+        productoAnt: '',
         //Variable para las dependencias 
         dependencias: [],
         dependencia: '',
@@ -167,6 +168,10 @@ export default {
                 this.alerta('danger', 'No se han podido cargar los Funcionarios');
             })
         },
+        //Función que te permite guardar el valor anterior del select
+        anterior(nomProducto){
+            this.productoAnt = nomProducto
+        },
         //Si se cambia un producto se debe buscar su stock
         cambioProducto(nomProducto, key){
             /*
@@ -178,8 +183,16 @@ export default {
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
             */
-            const indexRepetido = this.productos.findIndex(item => item.nomProducto == nomProducto);
-            if(indexRepetido == this.productos.length-1){
+            const indexActual = this.productos.findIndex(item => item.key == key);
+            var repetido = false;
+            for(var i = 0; i<this.productos.length; i++){
+                if(i != indexActual){
+                    if(this.productos[i].nomProducto === this.productos[indexActual].nomProducto){
+                        repetido = true;
+                    }
+                }
+            }
+            if(!repetido){
                 const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
                 const index2 = this.productos.findIndex(item => item.key == key);
                 this.productos[index2].stock = this.prods[index].stock
@@ -188,13 +201,8 @@ export default {
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
             }else{
-                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
-                const index2 = this.productos.findIndex(item => item.key == key);
-                this.productos[index2].stock = this.prods[index].stock
-                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
-                if(this.productos[index2].cantidad > this.productos[index2].stock){
-                    this.productos[index2].cantidad = this.productos[index2].stock;
-                }
+                this.productos[indexActual].nomProducto = this.productoAnt
+                
             }
         },
         //Se agrega un nuevo posible producto

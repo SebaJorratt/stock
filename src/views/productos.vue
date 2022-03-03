@@ -26,6 +26,7 @@
                       <th scope="col">Marca</th>
                       <th scope="col">Stock DirecReg</th>
                       <th scope="col">Stock Bodegas</th>
+                      <th scope="col">Stock Critico</th>
                       <th scope="col">Nombre Bodega</th>
                       <th scope="col">Edición</th>
                       <th scope="col">Historial Entregas</th>
@@ -39,6 +40,7 @@
                       <td>{{i.marca}}</td>
                       <td>{{i.stock}}</td>
                       <td>{{i.stockBodega}}</td>
+                      <td>{{i.stockCritico}}</td>
                       <td>{{i.nomBodega}}</td>
                       <td><b-button @click="Acteditar(i.codigoBarra)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
                       <td><b-button @click="ActHist(i.codigoBarra)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
@@ -82,11 +84,11 @@
                             </b-col>
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Stock de Bodega</label>
-                                <input type="number" @change="cantMin(i.stockBodega)" class="form-control" v-model="i.stockBodega">
+                                <input type="number" @change="cantMin(i.nomBodega)" class="form-control" v-model="i.stockBodega">
                             </b-col>
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
-                                <input type="number" @change="cantMinCritico(i.stockCritico)" class="form-control" v-model="i.stockCritico">
+                                <input type="number" @change="cantMinCritico(i.nomBodega)" class="form-control" v-model="i.stockCritico">
                             </b-col>
                         </b-row>
                         <b-row class="mt-5">
@@ -101,7 +103,7 @@
                 </div>
                 <div class="card mt-5" v-if="pestaña === 'editar'" style="border-color: black;">
                     <div class="card-header">
-                        <h2>Editar el Producto {{codigoBarra}}</h2>
+                        <h2>Editar un Producto</h2>
                     </div>
                     <div class="card-body">
                         <b-row class="mt-2">
@@ -123,6 +125,20 @@
                                 <p class="text-danger" v-if="$v.descripcion.$error" >La descripción del Producto es Requerida</p>
                             </b-col>
                         </b-row>
+                        <b-row class="mt-4">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Nombre Bodega</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="nomBodegaEditar">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Stock de Bodega</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="stockBodegaEditar">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
+                                <input type="number" @change="cantMinCriticoEditar(stockCriticoEditar)" class="form-control" v-model="stockCriticoEditar">
+                            </b-col>
+                        </b-row>
                         <b-row class="mt-5">
                             <b-col cols="12" md="6">
                                 <b-button @click="Volver()" class="btn btn-sm boton">Volver al listado</b-button>
@@ -142,7 +158,8 @@
                   <thead>
                     <tr>
                       <th scope="col">ID</th>
-                      <th scope="col">Producto</th>
+                      <th scope="col">Funcionario</th>
+                      <th scope="col">Dependencia</th>
                       <th scope="col">Fecha</th>
                       <th scope="col">Ver al Detalle</th>
                     </tr>
@@ -150,9 +167,34 @@
                   <tbody>
                     <tr v-for="i in historial" :key="i.corrHistorial">
                       <td scope="row">{{i.corrHistorial}}</td>
-                      <td>{{i.producto}}</td>
+                      <td>{{i.nomFuncionario}}</td>
+                      <td>{{i.nomDependencia}}</td>
                       <td>{{i.fecha}}</td>
                       <td><b-button @click="ActDHist(i.corrHistorial)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'detalleHist'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverHist()" class="btn btn boton mt-5">Volver al Historial</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="detalleHist" v-if="pestaña === 'detalleHist'">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in detalleHist" :key="i.corrHistProd">
+                      <td scope="row">{{i.corrHistProd}}</td>
+                      <td>{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.cantidad}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -162,11 +204,11 @@
                         <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Productos</b-button>
                     </b-col>
                 </b-row>
-                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'ordenes'">
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="ordenes" v-if="pestaña === 'ordenes'">
                   <thead>
                     <tr>
                       <th scope="col">Codigo de Orden</th>
-                      <th scope="col">Producto</th>
+                      <th scope="col">Bodega</th>
                       <th scope="col">Proveedor</th>
                       <th scope="col">Fecha</th>
                       <th scope="col">Ver al Detalle</th>
@@ -175,10 +217,34 @@
                   <tbody>
                     <tr v-for="i in ordenes" :key="i.codOrden">
                       <td scope="row">{{i.codOrden}}</td>
-                      <td>{{i.producto}}</td>
+                      <td>{{i.nomBodega}}</td>
                       <td>{{i.proveedor}}</td>
                       <td>{{i.fecha}}</td>
                       <td><b-button @click="ActDOrdenes(i.codOrden)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'detalleOrden'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverORD()" class="btn btn boton mt-5">Volver al Historial</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="detalleOrden" v-if="pestaña === 'detalleOrden'">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in detalleOrden" :key="i.corrOrdenProducto">
+                      <td scope="row">{{i.corrOrdenProducto}}</td>
+                      <td>{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.cantidad}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -210,6 +276,8 @@ export default {
         ordenes: [],
         bodegas: [],
         bod: [],
+        detalleHist: [],
+        detalleOrden: [],
         //Variables del AGREGAR
         codigoAgregar: '',
         productoAgregar: '',
@@ -221,6 +289,11 @@ export default {
         producto: '',
         marca: '',
         descripcion: '',
+        stockBodegaEditar: 0,
+        stockCriticoEditar: 0,
+        nomBodegaEditar: '',
+        //Variable Historial
+        histo: 0,
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
@@ -271,9 +344,23 @@ export default {
         },
         //Función para regresar a la vista inicial
         Volver(){
+            $('#historial').DataTable().destroy();
+            $('#ordenes').DataTable().destroy()
             this.pestaña = 'productos'
-            $('#productos').DataTable()
             this.cargarProductos();
+            $('#productos').DataTable()
+        },
+        VolverHist(){
+            $('#detalleHist').DataTable().destroy();
+            this.pestaña = 'historial'
+            this.cargarHistorial();
+            $('#historial').DataTable()
+        },
+        VolverORD(){
+            $('#detalleOrden').DataTable().destroy();
+            this.pestaña = 'ordenes'
+            this.cargarOrdenes();
+            $('#ordenes').DataTable()
         },
         //Funciones de activacion de vistas
         ActAgregar(){
@@ -288,15 +375,31 @@ export default {
         },
         ActHist(codigoBarra){
             this.codigoBarra = codigoBarra
-            this.pestaña = 'historial'
             $('#productos').DataTable().destroy();
+            this.pestaña = 'historial'
+            $('#historial').DataTable()
             this.cargarHistorial();
         },
         ActOrdenes(codigoBarra){
             this.codigoBarra = codigoBarra
             this.pestaña = 'ordenes'
             $('#productos').DataTable().destroy();
+            $('#ordenes').DataTable()
             this.cargarOrdenes();
+        },
+        ActDHist(corrHistorial){
+            this.histo = corrHistorial;
+            this.pestaña = 'detalleHist'
+            $('#historial').DataTable().destroy();
+            $('#detalleHist').DataTable()
+            this.cargarDetalleHistorial();
+        },
+        ActDOrdenes(codOrden){
+            this.histo = codOrden;
+            this.pestaña = 'detalleOrden';
+            $('#ordenes').DataTable().destroy();
+            $('#detalleOrden').DataTable()
+            this.cargarDetalleOrden();
         },
         //Funciones de AGREGAR
         //Función que se encarga de agregar un producto al sistema
@@ -359,31 +462,134 @@ export default {
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
-        cantMin(stockBodega){
-            const index = this.bodegas.findIndex(item => item.stockBodega == stockBodega);
-            if(stockBodega < 1){
+        cantMin(nomBodega){
+            const index = this.bodegas.findIndex(item => item.nomBodega == nomBodega);
+            if(this.bodegas[index].stockBodega < 1){
                 this.bodegas[index].stockBodega = 1;
-            } else if(stockBodega < this.bodegas[index].stockCritico){
+            }
+            if(this.bodegas[index].stockBodega < this.bodegas[index].stockCritico){
                 this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
-        cantMinCritico(stockCritico){
-            const index = this.bodegas.findIndex(item => item.stockCritico == stockCritico);
-            if(stockCritico < 1){
+        cantMinCritico(nomBodega){
+            const index = this.bodegas.findIndex(item => item.nomBodega == nomBodega);
+            if(this.bodegas[index].stockCritico < 1){
                 this.bodegas[index].stockCritico = 1;
-            }else if(this.bodegas[index].stockBodega < stockCritico){
-                console.log(this.bodegas[index].stockBodega, stockCritico)
+            }
+            if(this.bodegas[index].stockCritico > this.bodegas[index].stockBodega ){
+                console.log(this.bodegas[index].stockBodega, this.bodegas[index].stockCritico)
                 this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
             }
         },
         //FUNCIONES PARA EDITAR
+        //Función que permite obtener los datos directamente de la tabla
         ObtenerDatos(){
             const index = this.productos.findIndex(item => item.codigoBarra == this.codigoBarra);
             var data = this.productos[index]
-            this.producto = data.producto
+            this.producto = data.nomProducto
             this.marca = data.marca
             this.descripcion = data.descripcion
+            this.nomBodegaEditar = data.nomBodega
+            this.stockCriticoEditar = data.stockCritico
+            this.stockBodegaEditar = data.stockBodega
+            if(data.stockCritico > data.stockBodega){
+                this.alerta('danger', 'El stock critico es superior al stock actual en la bodega ' + data.nomBodega)
+            }
+        },
+        //Editar un producto 
+        EditarProducto(){
+            this.$v.$touch()
+            if(!this.$v.producto.$invalid && !this.$v.marca.$invalid && !this.$v.descripcion.$invalid){
+                this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        this.EditarStockCritico();
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha actualizado el producto',
+                        footer: 'Dato repetido asegurese de que el codigo o nombre no existan'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                    this.alerta('danger', 'No se ha logrado editar al producto');
+                })
+            }
+        },
+        //EDITAR EL STOCK CRITICO
+        EditarStockCritico(){
+            this.axios.put(`api/editarstockCritico/${this.codigoBarra}`, {stockCritico: this.stockCriticoEditar})
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    Swal.fire(
+                    'Se ha editado al producto satisfactoriamente',
+                    'Seleccione Ok para continuar',
+                    'success'
+                    )
+                }else{
+                    Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'No se ha actualizado el producto',
+                    footer: 'Dato repetido asegurese de que el codigo o nombre no existan'
+                    })
+                }
+                })
+                .catch(e => {
+                this.alerta('danger', 'No se ha logrado editar al producto');
+            })
+        },
+        //CARGAR DATOS DE TABLA HISTORIAL
+        cargarHistorial(){
+            this.axios.get(`api/obtenerHistorialesProducto/${this.codigoBarra}`)
+            .then(res => {
+                this.historial = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el historial');
+            })
+        },
+        //Caragar tabla de Detalles de un Historial
+        cargarOrdenes(){
+            this.axios.get(`api/obtenerOrdenesProducto/${this.codigoBarra}`)
+            .then(res => {
+                this.ordenes = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar la orden');
+            })
+        },
+        //Cargar los detalles de un historial
+        cargarDetalleHistorial(){
+            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            .then(res => {
+                this.detalleHist = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el detalle del historial');
+            })
+        },
+        //Cargar los detalles de una orden
+        cargarDetalleOrden(){
+            this.axios.get(`api/obtenerOrden/${this.histo}`)
+            .then(res => {
+                this.detalleOrden = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el detalle de una orden');
+            })
+        },
+        //Al cambiar el input del stock critico evitar que sea menos que 1 y alertar si es inferior al stock de bodega
+        cantMinCriticoEditar(){
+            if(this.stockCriticoEditar < 1){
+                this.stockCriticoEditar = 1;
+            }
+            if(this.stockCriticoEditar > this.stockBodegaEditar){
+                this.alerta('danger', 'El stock critico que esta ingresando es superior al stock actual')
+            }
         },
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
@@ -399,6 +605,10 @@ export default {
     },
     async mounted(){
       await $('#productos').DataTable()
+      await $('#historial').DataTable()
+      await $('#detalleHist').DataTable()
+      await $('#ordenes').DataTable()
+      await $('#detalleOrden').DataTable()
     },
     watch: {
       productos(val) {
@@ -406,6 +616,38 @@ export default {
           $('#productos').DataTable().destroy();
           this.$nextTick(()=> {
             $('#productos').DataTable()
+          });
+        }
+      },
+      historial(val) {
+        if(this.pestaña === 'historial'){
+          $('#historial').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#historial').DataTable()
+          });
+        }
+      },
+      detalleHist(val) {
+        if(this.pestaña === 'detalleHist'){
+          $('#detalleHist').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#detalleHist').DataTable()
+          });
+        }
+      },
+      ordenes(val) {
+        if(this.pestaña === 'ordenes'){
+          $('#ordenes').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#ordenes').DataTable()
+          });
+        }
+      },
+      detalleOrden(val) {
+        if(this.pestaña === 'detalleOrden'){
+          $('#detalleOrden').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#detalleOrden').DataTable()
           });
         }
       }

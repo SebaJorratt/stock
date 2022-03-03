@@ -21,24 +21,24 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="dependencias" v-if="pestaña === 'dependencias'">
                   <thead>
                     <tr>
-                      <th scope="col">Producto</th>
-                      <th scope="col">Codigo de Barras</th>
-                      <th scope="col">Marca</th>
-                      <th scope="col">Stock DirecReg</th>
-                      <th scope="col">Stock Bodegas</th>
+                      <th scope="col">Codigo Dependencia</th>
+                      <th scope="col">Nombre Dependencia</th>
+                      <th scope="col">Tipo Dependencia</th>
+                      <th scope="col">Comuna</th>
+                      <th scope="col">Dirección Dependencia</th>
                       <th scope="col">Edición</th>
-                      <th scope="col">Historial Entregas</th>
+                      <th scope="col">Entregas</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="i in dependencias" :key="i.codigoBarra">
-                      <td scope="row">{{i.producto}}</td>
-                      <td>{{i.codigoBarra}}</td>
-                      <td>{{i.marca}}</td>
-                      <td>{{i.stock}}</td>
-                      <td>{{i.stockbodega}}</td>
-                      <td><b-button @click="Acteditar(i.codigoBarra)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
-                      <td><b-button @click="ActHist(i.codigoBarra)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
+                    <tr v-for="i in dependencias" :key="i.codDependencia">
+                      <td scope="row">{{i.codDependencia}}</td>
+                      <td>{{i.nomDependencia}}</td>
+                      <td>{{i.tipo}}</td>
+                      <td>{{i.comuna}}</td>
+                      <td>{{i.direccion}}</td>
+                      <td><b-button @click="Acteditar(i.codDependencia)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
+                      <td><b-button @click="ActHist(i.codDependencia)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -87,14 +87,14 @@
                                 <b-button @click="Volver()" class="btn btn-sm boton">Volver al listado</b-button>
                             </b-col>
                             <b-col cols="12" md="6">
-                                <b-button @click="AgregarDependencia()" class="btn-success btn-sm boton">Agregar Dependencia</b-button>
+                                <b-button @click="AgregarUbicacion()" class="btn-success btn-sm boton">Agregar Dependencia</b-button>
                             </b-col>
                         </b-row>
                     </div>
                 </div>
                 <div class="card mt-5" v-if="pestaña === 'editar'" style="border-color: black;">
                     <div class="card-header">
-                        <h2>Editar el Producto {{codigoBarra}}</h2>
+                        <h2>Editar una Dependencia</h2>
                     </div>
                     <div class="card-body">
                         <b-row class="mt-2">
@@ -139,13 +139,14 @@
                 </div>
                 <b-row v-if="pestaña === 'historial'">
                     <b-col cols="12" md="12">
-                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Dependencias</b-button>
+                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Productos</b-button>
                     </b-col>
                 </b-row>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'historial'">
                   <thead>
                     <tr>
                       <th scope="col">ID</th>
+                      <th scope="col">Funcionario</th>
                       <th scope="col">Dependencia</th>
                       <th scope="col">Fecha</th>
                       <th scope="col">Ver al Detalle</th>
@@ -154,9 +155,34 @@
                   <tbody>
                     <tr v-for="i in historial" :key="i.corrHistorial">
                       <td scope="row">{{i.corrHistorial}}</td>
-                      <td>{{i.producto}}</td>
+                      <td>{{i.nomFuncionario}}</td>
+                      <td>{{i.nomDependencia}}</td>
                       <td>{{i.fecha}}</td>
                       <td><b-button @click="ActDHist(i.corrHistorial)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'detalleHist'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverHist()" class="btn btn boton mt-5">Volver al Historial</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="detalleHist" v-if="pestaña === 'detalleHist'">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in detalleHist" :key="i.corrHistProd">
+                      <td scope="row">{{i.corrHistProd}}</td>
+                      <td>{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.cantidad}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -185,6 +211,7 @@ export default {
         pestaña: 'dependencias',
         dependencias: [],
         historial: [],
+        detalleHist: [],
         comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
                 'Punitaqui', 'Río Hurtado'],
         //Variables del AGREGAR
@@ -200,6 +227,8 @@ export default {
         tipo: '',
         comuna: '',
         direccion: '',
+        //Variable Historial
+        histo: 0,
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
@@ -211,7 +240,6 @@ export default {
         codDependenciaAgregar:{required},
         nomDependenciaAgregar:{required},
         direccionAgregar:{required},
-        descripcionAgrega:{required},
         nomDependencia:{required},
         direccion:{required},
     },
@@ -222,34 +250,108 @@ export default {
     methods:{
         //Función que carga todas las dependencias
         cargarDependencias(){
-            this.dependencias = [{producto: 'Bueno', codigoBarra: '8797828291', marca: 'XD', descripcion: 'Buen producto', stock: 20, stockbodega: 40}, {producto: 'Regular', codigoBarra: '879782asd8291', marca: 'XDD', descripcion: 'no tan bueno producto', stock: 25, stockbodega: 42}]
+            this.axios.get('api/obtenerDependencias')
+            .then(res => {
+                this.dependencias = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar las Dependencias');
+            })
         },
         //Función para regresar a la vista inicial
         Volver(){
+            $('#historial').DataTable().destroy();
             this.pestaña = 'dependencias'
             $('#dependencias').DataTable()
             this.cargarDependencias();
+        },
+        VolverHist(){
+            $('#detalleHist').DataTable().destroy();
+            this.pestaña = 'historial'
+            this.cargarHistorial();
+            $('#historial').DataTable()
         },
         //Funciones para cambiar las vistas
         ActAgregar(){
             this.pestaña = 'agregar'
             $('#dependencias').DataTable().destroy();
         },
-        Acteditar(codigoBarra){
-            this.codigoBarra = codigoBarra
+        Acteditar(codDependencia){
+            this.codDependencia = codDependencia
             this.pestaña = 'editar'
             $('#dependencias').DataTable().destroy();
             this.ObtenerDatos();
         },
-        ActHist(codigoBarra){
-            this.codigoBarra = codigoBarra
+        ActHist(codDependencia){
+            this.codDependencia = codDependencia
             this.pestaña = 'historial'
             $('#dependencias').DataTable().destroy();
             this.cargarHistorial();
         },
+        ActDHist(corrHistorial){
+            this.histo = corrHistorial;
+            this.pestaña = 'detalleHist'
+            $('#historial').DataTable().destroy();
+            $('#detalleHist').DataTable()
+            this.cargarDetalleHistorial();
+        },
         //Funciones de AGREGAR
+        //Función que se encarga de agregar una nueva ubicacion
+        AgregarUbicacion(){
+            this.$v.$touch()
+            if(!this.$v.codDependenciaAgregar.$invalid && !this.$v.nomDependenciaAgregar.$invalid && !this.$v.direccionAgregar.$invalid){
+                this.axios.post('api/agregaUbicacion', {comuna: this.comunaAgregar, direccion: this.direccionAgregar})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        this.AgregarDependencia();
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado la ubicacion Ingresada',
+                        footer: 'A ocurrido un error en el ingreso de los datos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado este nuevo tipo',
+                        footer: 'Posible error del sistema'
+                    })
+                    })
+            }else{
+                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos')
+            }
+        },
+        //Función que se encarga de agregar una nueva Dependencia
         AgregarDependencia(){
-            console.log('Agregar')
+            this.axios.post('api/agregaUbicacion', {comuna: this.comunaAgregar, direccion: this.direccionAgregar})
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    Swal.fire(
+                        'Se ha generado una nueva Dependencia',
+                        'Seleccione Ok para continuar',
+                        'success'
+                    )
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado la nueva Dependencia',
+                        footer: 'El codigo de la Dependencia y/o el nombre ya existen en este sistema'
+                    })
+                }
+                })
+                .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado la nueva Dependencia',
+                        footer: 'Posible error del sistema'
+                    })
+                })
         },
         //FUNCIONES PARA EDITAR
         ObtenerDatos(){
@@ -259,6 +361,27 @@ export default {
             this.marca = data.marca
             this.descripcion = data.descripcion
         },
+        //CARGAR LOS DATOS DE LA TABLA HISTORIAL
+        cargarHistorial(){
+            this.axios.get(`api/obtenerHistorialesDependencia/${this.codDependencia}`)
+            .then(res => {
+                this.historial = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el historial');
+            })
+        },
+        //Cargar los detalles de un historial
+        cargarDetalleHistorial(){
+            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            .then(res => {
+                this.detalleHist = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el detalle del historial');
+            })
+        },
+        //FUNCIONES PARA LAS ALERTAS
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
         },
@@ -273,6 +396,8 @@ export default {
     },
     async mounted(){
       await $('#dependencias').DataTable()
+      await $('#historial').DataTable()
+      await $('#detalleHist').DataTable()
     },
     watch: {
       dependencias(val) {
@@ -280,6 +405,22 @@ export default {
           $('#dependencias').DataTable().destroy();
           this.$nextTick(()=> {
             $('#dependencias').DataTable()
+          });
+        }
+      },
+      detalleHist(val) {
+        if(this.pestaña === 'detalleHist'){
+          $('#detalleHist').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#detalleHist').DataTable()
+          });
+        }
+      },
+      historial(val) {
+        if(this.pestaña === 'historial'){
+          $('#historial').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#historial').DataTable()
           });
         }
       }
