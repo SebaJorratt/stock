@@ -21,24 +21,24 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="funcionarios" v-if="pestaña === 'funcionarios'">
                   <thead>
                     <tr>
-                      <th scope="col">Producto</th>
-                      <th scope="col">Codigo de Barras</th>
-                      <th scope="col">Marca</th>
-                      <th scope="col">Stock DirecReg</th>
-                      <th scope="col">Stock Bodegas</th>
+                      <th scope="col">Codigo Funcionario</th>
+                      <th scope="col">Funcionario</th>
+                      <th scope="col">Correo</th>
+                      <th scope="col">Rut</th>
+                      <th scope="col">Dependencia</th>
                       <th scope="col">Edición</th>
                       <th scope="col">Historial Entregas</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="i in funcionarios" :key="i.codigoBarra">
-                      <td scope="row">{{i.producto}}</td>
-                      <td>{{i.codigoBarra}}</td>
-                      <td>{{i.marca}}</td>
-                      <td>{{i.stock}}</td>
-                      <td>{{i.stockbodega}}</td>
-                      <td><b-button @click="Acteditar(i.codigoBarra)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
-                      <td><b-button @click="ActHist(i.codigoBarra)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
+                    <tr v-for="i in funcionarios" :key="i.codFuncionario">
+                      <td scope="row">{{i.codFuncionario}}</td>
+                      <td>{{i.nomFuncionario}}</td>
+                      <td>{{i.correo}}</td>
+                      <td>{{i.rut}}</td>
+                      <td>{{i.nomDependencia}}</td>
+                      <td><b-button @click="Acteditar(i.codFuncionario)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
+                      <td><b-button @click="ActHist(i.codFuncionario)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -219,7 +219,13 @@ export default {
     methods:{
         //Función para cargar los Funcionarios del sistema
         cargarFuncionarios(){
-            this.funcionarios = [{producto: 'Bueno', codigoBarra: '8797828291', marca: 'XD', descripcion: 'Buen producto', stock: 20, stockbodega: 40}, {producto: 'Regular', codigoBarra: '879782asd8291', marca: 'XDD', descripcion: 'no tan bueno producto', stock: 25, stockbodega: 42}]
+            this.axios.get('api/obtenerFuncionarios')
+            .then(res => {
+                this.funcionarios = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Funcionarios');
+            })
         },
         //Función para regresar a la vista inicial
         Volver(){
@@ -232,14 +238,14 @@ export default {
             this.pestaña = 'agregar'
             $('#funcionarios').DataTable().destroy();
         },
-        Acteditar(codigoBarra){
-            this.codFuncionario = codigoBarra
+        Acteditar(codFuncionario){
+            this.codFuncionario = codFuncionario
             this.pestaña = 'editar'
             $('#funcionarios').DataTable().destroy();
             this.ObtenerDatos();
         },
-        ActHist(codigoBarra){
-            this.codFuncionario = codigoBarra
+        ActHist(codFuncionario){
+            this.codFuncionario = codFuncionario
             this.pestaña = 'historial'
             $('#funcionarios').DataTable().destroy();
             this.cargarHistorial();

@@ -37,7 +37,7 @@
                       <td>{{i.tipo}}</td>
                       <td>{{i.comuna}}</td>
                       <td>{{i.direccion}}</td>
-                      <td><b-button @click="Acteditar(i.codDependencia)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
+                      <td><b-button @click="Acteditar(i.codDependencia, i.corrUbicacion)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
                       <td><b-button @click="ActHist(i.codDependencia)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
                     </tr>
                   </tbody>
@@ -132,7 +132,7 @@
                                 <b-button @click="Volver()" class="btn btn-sm boton">Volver al listado</b-button>
                             </b-col>
                             <b-col cols="12" md="6">
-                                <b-button @click="AgregarDependencia()" class="btn-success btn-sm boton">Agregar Dependencia</b-button>
+                                <b-button @click="EditarUbicacion()" class="btn-success btn-sm boton">Agregar Dependencia</b-button>
                             </b-col>
                         </b-row>
                     </div>
@@ -222,6 +222,7 @@ export default {
         direccionAgregar: '',
         //Variable para reconocer un producto
         codDependencia: '',
+        corrUbicacion: '',
         //Variables para EDITAR
         nomDependencia: '',
         tipo: '',
@@ -276,8 +277,9 @@ export default {
             this.pestaña = 'agregar'
             $('#dependencias').DataTable().destroy();
         },
-        Acteditar(codDependencia){
+        Acteditar(codDependencia, corrUbicacion){
             this.codDependencia = codDependencia
+            this.corrUbicacion = corrUbicacion
             this.pestaña = 'editar'
             $('#dependencias').DataTable().destroy();
             this.ObtenerDatos();
@@ -314,12 +316,12 @@ export default {
                     }
                     })
                     .catch(e => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha creado este nuevo tipo',
-                        footer: 'Posible error del sistema'
-                    })
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha creado este nuevo tipo',
+                            footer: 'Posible error del sistema'
+                        })
                     })
             }else{
                 this.alerta('danger', 'Porfavor ingrese todos los campos requeridos')
@@ -327,7 +329,7 @@ export default {
         },
         //Función que se encarga de agregar una nueva Dependencia
         AgregarDependencia(){
-            this.axios.post('api/agregaUbicacion', {comuna: this.comunaAgregar, direccion: this.direccionAgregar})
+            this.axios.post('api/agregaDependencia', {codDependencia: this.codDependenciaAgregar, tipo: this.tipoAgregar, nomDependencia: this.nomDependenciaAgregar})
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
@@ -354,13 +356,94 @@ export default {
                 })
         },
         //FUNCIONES PARA EDITAR
+        //Función que permite obtener los datos de la dependencia a editar
         ObtenerDatos(){
-            const index = this.dependencias.findIndex(item => item.codigoBarra == this.codigoBarra);
+            const index = this.dependencias.findIndex(item => item.codDependencia == this.codDependencia);
             var data = this.dependencias[index]
-            this.producto = data.producto
-            this.marca = data.marca
-            this.descripcion = data.descripcion
+            this.nomDependencia = data.nomDependencia
+            this.tipo = data.tipo
+            this.comuna = data.comuna
+            this.direccion = data.direccion
         },
+        //PARA EDITAR UNA DEPENDENCIA PRIMERO SE DEBE EDITAR SU UBICACION POR LO QUE SE GENERA UNA NUEVA
+        EditarUbicacion(){
+            this.$v.$touch()
+            if(!this.$v.nomDependencia.$invalid && !this.$v.direccion.$invalid){
+                this.axios.post('api/agregaUbicacion', {comuna: this.comuna, direccion: this.direccion})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        this.EditarDependencia();
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado la ubicacion Ingresada',
+                        footer: 'A ocurrido un error en el ingreso de los datos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha creado la ubicacion Ingresada',
+                            footer: 'Posible error del sistema'
+                        })
+                    })
+            }else{
+                this.alerta('danger', 'Rellene todos los campos para editar la dependencia')
+            }
+        },
+        //Luego de agregar la nueva ubicacion editamos los datos de la Dependencia
+        EditarDependencia(){
+            this.axios.put(`api/editarDependencia/${this.codDependencia}`, {nomDependencia: this.nomDependencia, tipo: this.tipo})
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    this.EliminarUbicacion();
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha actualizado el producto',
+                        footer: 'Dato repetido asegurese de que el codigo o nombre ya existan'
+                    })
+                }
+                })
+                .catch(e => {
+                    this.alerta('danger', 'No se ha logrado editar a la Dependencia');
+                })
+        },
+        //Ahora eliminamos la ubicacion que anteriormente estaba relacionada con esta dependencia
+        EliminarUbicacion(){
+            console.log(this.corrUbicacion)
+            this.axios.delete(`api/eliminarUbicacion/${this.corrUbicacion}`)
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    Swal.fire(
+                        'Se ha logrado editar la Dependencia con exito!',
+                        'Seleccione Ok para continuar',
+                        'success'
+                    )
+                    this.Volver();
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha actualizado la Dependencia',
+                        footer: 'Se encontro un error con la ubicación'
+                    })
+                }
+                })
+                .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha actualizado la Dependencia',
+                        footer: 'ERROR al cambiar la ubicación'
+                    });
+                })
+        },
+        //TABLAS DE HISTORIALES
         //CARGAR LOS DATOS DE LA TABLA HISTORIAL
         cargarHistorial(){
             this.axios.get(`api/obtenerHistorialesDependencia/${this.codDependencia}`)
