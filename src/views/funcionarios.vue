@@ -3,6 +3,9 @@
         <navbar />
         <b-container><br>
             <h1 class="mt-2">Administración de Funcionarios</h1>
+            <h2 class="mt-1" v-if="pestaña === 'funcionarios'"> Listado de Funcionarios</h2>
+            <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos del funcionario: {{codFuncionario}}</h2> 
+            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -61,11 +64,7 @@
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
                                 <select class="form-control" v-model="dependenciaAgregar">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
                         </b-row>
@@ -105,11 +104,7 @@
                             <b-col cols="12" md="6">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
                                 <select class="form-control" v-model="dependencia">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
                         </b-row>
@@ -145,6 +140,7 @@
                     <tr>
                       <th scope="col">ID</th>
                       <th scope="col">Funcionario</th>
+                      <th scope="col">Dependencia</th>
                       <th scope="col">Fecha</th>
                       <th scope="col">Ver al Detalle</th>
                     </tr>
@@ -152,9 +148,34 @@
                   <tbody>
                     <tr v-for="i in historial" :key="i.corrHistorial">
                       <td scope="row">{{i.corrHistorial}}</td>
-                      <td>{{i.producto}}</td>
+                      <td>{{i.nomFuncionario}}</td>
+                      <td>{{i.nomDependencia}}</td>
                       <td>{{i.fecha}}</td>
                       <td><b-button @click="ActDHist(i.corrHistorial)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'detalleHist'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverHist()" class="btn btn boton mt-5">Volver al Historial</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="detalleHist" v-if="pestaña === 'detalleHist'">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in detalleHist" :key="i.corrHistProd">
+                      <td scope="row">{{i.corrHistProd}}</td>
+                      <td>{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.cantidad}}</td>
                     </tr>
                   </tbody>
                 </table>
@@ -165,7 +186,7 @@
 
 <script>
 import navbar from "../components/navbar.vue";
-import { required, minLength} from "vuelidate/lib/validators";
+import { required, minLength, email} from "vuelidate/lib/validators";
 
 import 'jquery/dist/jquery.min.js';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -184,6 +205,7 @@ export default {
         funcionarios: [],
         dependencias: [],
         historial: [],
+        detalleHist: [],
         //Variables del AGREGAR
         codFuncionarioAgregar: '',
         nomFuncionarioAgregar: '',
@@ -192,6 +214,7 @@ export default {
         rutAgregar: '',
         //Variable para reconocer un producto
         codFuncionario: '',
+        histo: '',
         //Variables para EDITAR
         nomFuncionario: '',
         dependencia: '',
@@ -207,14 +230,15 @@ export default {
         //Validaciones de los input
         codFuncionarioAgregar:{required},
         nomFuncionarioAgregar:{required},
-        correoAgregar:{required},
+        correoAgregar:{required, email},
         rutAgregar:{required},
         nomFuncionario:{required},
-        correo:{required},
+        correo:{required, email},
         rut:{required},
     },
     created(){
         this.cargarFuncionarios();
+        this.cargarDependencias();
     },
     methods:{
         //Función para cargar los Funcionarios del sistema
@@ -227,11 +251,29 @@ export default {
                 this.alerta('danger', 'No se han podido cargar los Funcionarios');
             })
         },
+        //Función que se encargar de cargar las dependencias
+        cargarDependencias(){
+            this.axios.get('api/obtenerDependencias')
+            .then(res => {
+                this.dependencias = res.data;
+                this.dependenciaAgregar = this.dependencias[0].nomDependencia;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar las Dependencias');
+            })
+        },
         //Función para regresar a la vista inicial
         Volver(){
+            $('#historial').DataTable().destroy();
             this.pestaña = 'funcionarios'
             $('#funcionarios').DataTable()
             this.cargarFuncionarios();
+        },
+        VolverHist(){
+            $('#detalleHist').DataTable().destroy();
+            this.pestaña = 'historial'
+            this.cargarHistorial();
+            $('#historial').DataTable()
         },
         //Funciones para cambiar de vistas
         ActAgregar(){
@@ -250,17 +292,98 @@ export default {
             $('#funcionarios').DataTable().destroy();
             this.cargarHistorial();
         },
+        ActDHist(corrHistorial){
+            this.histo = corrHistorial;
+            this.pestaña = 'detalleHist'
+            $('#historial').DataTable().destroy();
+            $('#detalleHist').DataTable()
+            this.cargarDetalleHistorial();
+        },
         //Funciones de AGREGAR
         AgregarFuncionario(){
-            console.log('Agregar')
+            this.$v.$touch()
+            if(!this.$v.codFuncionarioAgregar.$invalid && !this.$v.nomFuncionarioAgregar.$invalid && !this.$v.correoAgregar.$invalid && !this.$v.rutAgregar.$invalid){
+                this.axios.post('api/agregaFuncionario', {codFuncionario: this.codFuncionarioAgregar, nomFuncionario: this.nomFuncionarioAgregar, correo: this.correoAgregar, rut: this.rutAgregar, nomDependencia: this.dependenciaAgregar})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        Swal.fire(
+                            'Se ha generado un nuevo Funcionario',
+                            'Seleccione Ok para continuar',
+                            'success'
+                        )
+                    }else{
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado crear al nuevo Funcionario',
+                        footer: 'A ocurrido un error en el ingreso de los datos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado crear al nuevo Funcionario',
+                            footer: 'Posible error del sistema'
+                        })
+                    })
+            }else{
+                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos')
+            }
         },
         //FUNCIONES PARA EDITAR
         ObtenerDatos(){
-            const index = this.funcionarios.findIndex(item => item.codigoBarra == this.codFuncionario);
+            const index = this.funcionarios.findIndex(item => item.codFuncionario == this.codFuncionario);
             var data = this.funcionarios[index]
-            this.producto = data.producto
-            this.marca = data.marca
-            this.descripcion = data.descripcion
+            this.nomFuncionario = data.nomFuncionario
+            this.dependencia = data.nomDependencia
+            this.correo = data.correo
+            this.rut = data.rut
+        },
+        //Función que permite editar un Funcionario
+        EditarFuncionario(){
+            this.axios.put(`api/editarFuncionario/${this.codFuncionario}`, {nomFuncionario: this.nomFuncionario, correo: this.correo, rut: this.rut, nomDependencia: this.dependencia})
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    Swal.fire(
+                        'Se ha logrado editar al Funcionario',
+                        'Seleccione Ok para continuar',
+                        'success'
+                    )
+                }else{
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha actualizado el funcionario',
+                        footer: 'Dato repetido asegurese de que el codigo o nombre ya existan'
+                    })
+                }
+                })
+                .catch(e => {
+                    this.alerta('danger', 'No se ha logrado editar al funcionario');
+                })
+        },
+        //TABLAS DE HISTORIALES
+        //CARGAR LOS DATOS DE LA TABLA HISTORIAL
+        cargarHistorial(){
+            this.axios.get(`api/obtenerHistorialesFuncionario/${this.codFuncionario}`)
+            .then(res => {
+                this.historial = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el historial');
+            })
+        },
+        //Cargar los detalles de un historial
+        cargarDetalleHistorial(){
+            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            .then(res => {
+                this.detalleHist = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el detalle del historial');
+            })
         },
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
@@ -276,6 +399,8 @@ export default {
     },
     async mounted(){
       await $('#funcionarios').DataTable()
+      await $('#historial').DataTable()
+      await $('#detalleHist').DataTable()
     },
     watch: {
       funcionarios(val) {
@@ -285,7 +410,23 @@ export default {
             $('#funcionarios').DataTable()
           });
         }
-      }
+      },
+      historial(val) {
+        if(this.pestaña === 'historial'){
+          $('#historial').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#historial').DataTable()
+          });
+        }
+      },
+      detalleHist(val) {
+        if(this.pestaña === 'detalleHist'){
+          $('#detalleHist').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#detalleHist').DataTable()
+          });
+        }
+      },
     }
 }
 </script>
@@ -300,7 +441,7 @@ export default {
     }
 
     .imagen{
-        width: 100%;
+        width: 50%;
     }
     .boton{
         margin: 20px;

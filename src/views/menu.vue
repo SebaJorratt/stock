@@ -6,7 +6,7 @@
             <div class="mt-4">
                 <b-row>
                     <b-col cols="12" md="12">
-                        <img src="../assets/bodegas.png" class="imagen">
+                        <img src="../assets/bodegas.png" class="logo">
                     </b-col>
                 </b-row>
                 <b-row>
@@ -51,7 +51,7 @@ export default {
         text-align: center;
     }
 
-    .imagen{
+    .logo{
         width: 50%;
     }
 

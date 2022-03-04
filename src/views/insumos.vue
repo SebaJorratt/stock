@@ -1,91 +1,93 @@
 <template>
     <div class="menu">
         <navbar />
-        <b-container><br>
-            <h1 class="mt-2">Entrega de Insumos</h1>
-            <b-alert
-              :show="dismissCountDown"
-              dismissible
-              :variant="mensaje.color"
-              @dismissed="dismissCountDown=0"
-              @dismiss-count-down="countDownChanged"
-              >
-              {{mensaje.texto}}
-            </b-alert>
-            <div class=" card mt-4">
-                <div class="card-header">
-                    <h2>Determine que productos serán enviados a la Dependencia</h2>
-                </div>
-                <div class="card-body">
-                    <b-row class="mt-2">
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Dependencia</label>
-                            <select class="form-control" v-model="$v.dependencia.$model">
-                                <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
-                            </select>
-                        </b-col>
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Funcionario</label>
-                            <select class="form-control" v-model="funcionario">
-                                <option v-for="i in funcionarios" :key="i.nomFuncionario" :value="i.nomFuncionario">{{i.nomFuncionario}}</option>
-                            </select>
-                        </b-col>
-                        <b-col cols="12" md="2">
-                            <b-button @click="agregaProducto()" variant="primary" class="btn-primary btn boton">Agregar Producto</b-button>
-                        </b-col>
-                        <b-col cols="12" md="2">
-                            <b-button @click="quitarProducto()" class="btn-danger btn boton">Quitar Producto</b-button>
-                        </b-col>
-                    </b-row>
-                    <b-row class="mt-2" v-for="i in productos" :key="i.key">
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Producto</label>
-                            <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
-                                <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
-                            </select>
-                        </b-col>
-                        <b-col cols="12" md="3">
-                            <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
-                            <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
-                        </b-col>
-                        <b-col cols="12" md="3">
-                            <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
-                            <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
-                        </b-col>
-                        <b-col cols="12" md="2">
-                            <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
-                        </b-col>
-                    </b-row>
-                    <b-row>
-                        <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar Informe</b-button>
-                    </b-row>
-                </div>
-            </div>
-            <b-modal id="modal-1" title="Detalles del Producto">
-                <div class="card-body">
+        <transition name="slide-fade">
+            <b-container><br>
+                <h1 class="mt-2">Entrega de Insumos</h1>
+                <b-alert
+                :show="dismissCountDown"
+                dismissible
+                :variant="mensaje.color"
+                @dismissed="dismissCountDown=0"
+                @dismiss-count-down="countDownChanged"
+                >
+                {{mensaje.texto}}
+                </b-alert>
+                <div class=" card mt-4">
+                    <div class="card-header">
+                        <h2>Determine que productos serán enviados a la Dependencia</h2>
+                    </div>
+                    <div class="card-body">
                         <b-row class="mt-2">
                             <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
-                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
+                                <label for="exampleInputEmail1" class="form-label">Dependencia</label>
+                                <select class="form-control" v-model="$v.dependencia.$model">
+                                    <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
+                                </select>
                             </b-col>
                             <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Nombre</label>
-                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
+                                <label for="exampleInputEmail1" class="form-label">Funcionario</label>
+                                <select class="form-control" v-model="funcionario">
+                                    <option v-for="i in funcionarios" :key="i.nomFuncionario" :value="i.nomFuncionario">{{i.nomFuncionario}}</option>
+                                </select>
                             </b-col>
-                            <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Marca</label>
-                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
+                            <b-col cols="12" md="2">
+                                <b-button @click="agregaProducto()" variant="primary" class="btn-primary btn boton">Agregar Producto</b-button>
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <b-button @click="quitarProducto()" class="btn-danger btn boton">Quitar Producto</b-button>
                             </b-col>
                         </b-row>
-                        <b-row class="mt-4">
-                            <b-col cols="12" md="12">
-                                <label for="exampleInputEmail1" class="form-label">Descripcion</label>
-                                <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
+                        <b-row class="mt-2" v-for="i in productos" :key="i.key">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Producto</label>
+                                <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                </select>
                             </b-col>
+                            <b-col cols="12" md="3">
+                                <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
+                                <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
+                            </b-col>
+                            <b-col cols="12" md="3">
+                                <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
+                                <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
+                            </b-col>
+                        </b-row>
+                        <b-row>
+                            <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar Informe</b-button>
                         </b-row>
                     </div>
-            </b-modal>
-        </b-container>
+                </div>
+                <b-modal id="modal-1" title="Detalles del Producto">
+                    <div class="card-body">
+                            <b-row class="mt-2">
+                                <b-col cols="12" md="4">
+                                    <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
+                                    <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
+                                </b-col>
+                                <b-col cols="12" md="4">
+                                    <label for="exampleInputEmail1" class="form-label">Nombre</label>
+                                    <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
+                                </b-col>
+                                <b-col cols="12" md="4">
+                                    <label for="exampleInputEmail1" class="form-label">Marca</label>
+                                    <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
+                                </b-col>
+                            </b-row>
+                            <b-row class="mt-4">
+                                <b-col cols="12" md="12">
+                                    <label for="exampleInputEmail1" class="form-label">Descripcion</label>
+                                    <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
+                                </b-col>
+                            </b-row>
+                        </div>
+                </b-modal>
+            </b-container>
+        </transition>
     </div>
 </template>
 
@@ -174,15 +176,6 @@ export default {
         },
         //Si se cambia un producto se debe buscar su stock
         cambioProducto(nomProducto, key){
-            /*
-                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
-                const index2 = this.productos.findIndex(item => item.key == key);
-                this.productos[index2].stock = this.prods[index].stock
-                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
-                if(this.productos[index2].cantidad > this.productos[index2].stock){
-                    this.productos[index2].cantidad = this.productos[index2].stock;
-                }
-            */
             const indexActual = this.productos.findIndex(item => item.key == key);
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
@@ -211,11 +204,13 @@ export default {
             this.cantidadProductos++
             var a = 0;
             this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0});
+            //Busca si un producto ya existe en en alguno de los select habilitados 
             while(a < this.prods.length){
                 const index = this.productos.findIndex(item => item.nomProducto == this.prods[a].nomProducto);
+                //Si lo encuentra pasa al siguiente producto
                 if(index != -1){
                     a++;
-                }else{
+                }else{ //Si el valor retornado es -1 significa que el producto ya existe, por lo tanto debe seguir buscando
                     this.productos[this.productos.length-1].nomProducto = this.prods[a].nomProducto
                     this.productos[this.productos.length-1].stock = this.prods[a].stock
                     this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
@@ -258,7 +253,7 @@ export default {
         generarInforme(){
             var dt = this.convertDateMysql(new Date())
             swal.fire({
-            title: '¿Seguro que desea asignar este equipo al usuario ' + this.dueño + '?',
+            title: '¿Seguro que desea realizar la entregsa de Insumos ' + this.dueño + '?',
             type: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',
@@ -392,7 +387,7 @@ export default {
     }
 
     .imagen{
-        width: 100%;
+        width: 50%;
     }
 
     .boton{
@@ -400,5 +395,19 @@ export default {
         width: 90%;
         border-radius: 12px !important;
         border-color: black !important;
+    }
+
+    /* Las animaciones de entrada y salida pueden usar */
+    /* funciones de espera y duración diferentes.      */
+    .slide-fade-enter-active {
+    transition: all .3s ease;
+    }
+    .slide-fade-leave-active {
+    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+    }
+    .slide-fade-enter, .slide-fade-leave-to
+    /* .slide-fade-leave-active below version 2.1.8 */ {
+    transform: translateX(10px);
+    opacity: 0;
     }
 </style>

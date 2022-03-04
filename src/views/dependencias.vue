@@ -3,6 +3,9 @@
         <navbar />
         <b-container><br>
             <h1 class="mt-2">Administración de Dependencia</h1>
+            <h2 class="mt-1" v-if="pestaña === 'dependencias'"> Listado de Dependencias</h2>
+            <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos de la Dependencia: {{codDependencia}}</h2> 
+            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -415,7 +418,6 @@ export default {
         },
         //Ahora eliminamos la ubicacion que anteriormente estaba relacionada con esta dependencia
         EliminarUbicacion(){
-            console.log(this.corrUbicacion)
             this.axios.delete(`api/eliminarUbicacion/${this.corrUbicacion}`)
                 .then(res => {
                 if(!res.data.sqlMessage){
@@ -521,7 +523,7 @@ export default {
     }
 
     .imagen{
-        width: 100%;
+        width: 50%;
     }
     .boton{
         margin: 20px;

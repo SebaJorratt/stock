@@ -3,6 +3,11 @@
         <navbar />
         <b-container><br>
             <h1 class="mt-2">Administración de Productos</h1>
+            <h2 class="mt-1" v-if="pestaña === 'productos'"> Listado de Productos</h2>
+            <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos del producto: {{codigoBarra}}</h2>
+            <h2 class="mt-1" v-if="pestaña === 'ordenes'"> Ordenes de compra del producto: {{codigoBarra}}</h2> 
+            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
+            <h2 class="mt-1" v-if="pestaña === 'detalleOrd'"> Detalle de la orden de compra numero: {{histo}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -478,7 +483,6 @@ export default {
                 this.bodegas[index].stockCritico = 1;
             }
             if(this.bodegas[index].stockCritico > this.bodegas[index].stockBodega ){
-                console.log(this.bodegas[index].stockBodega, this.bodegas[index].stockCritico)
                 this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
             }
         },
@@ -554,7 +558,7 @@ export default {
                 this.alerta('danger', 'No se ha logrado cargar el historial');
             })
         },
-        //Caragar tabla de Detalles de un Historial
+        //Caragar tabla de ordenes de compra de un producto
         cargarOrdenes(){
             this.axios.get(`api/obtenerOrdenesProducto/${this.codigoBarra}`)
             .then(res => {
@@ -667,7 +671,7 @@ export default {
     }
 
     .imagen{
-        width: 100%;
+        width: 50%;
     }
     .boton{
         margin: 20px;

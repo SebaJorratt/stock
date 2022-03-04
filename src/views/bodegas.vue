@@ -3,6 +3,8 @@
         <navbar />
         <b-container><br>
             <h1 class="mt-2">Administración de Bodegas</h1>
+            <h2 class="mt-1" v-if="pestaña === 'bodegas'"> Listado de Bodegas</h2>
+            <h2 class="mt-1" v-if="pestaña === 'ordenes'"> Listado de Ordenes de la Bodega: {{nomBodega}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -37,22 +39,16 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="bodegas" v-if="pestaña === 'bodegas'">
                   <thead>
                     <tr>
-                      <th scope="col">Producto</th>
-                      <th scope="col">Codigo de Barras</th>
-                      <th scope="col">Marca</th>
-                      <th scope="col">Stock DirecReg</th>
-                      <th scope="col">Stock Bodegas</th>
+                      <th scope="col">Nombre de la Bodega</th>
+                      <th scope="col">Enviar a Dirección</th>
                       <th scope="col">Ordenes de Compra</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr v-for="i in bodegas" :key="i.codigoBarra">
-                      <td scope="row">{{i.producto}}</td>
-                      <td>{{i.codigoBarra}}</td>
-                      <td>{{i.marca}}</td>
-                      <td>{{i.stock}}</td>
-                      <td>{{i.stockbodega}}</td>
-                      <td><b-button @click="ActOrdenes(i.codigoBarra)" class="btn-success btn-sm" style="border-color: white;">Ordenes</b-button></td>
+                    <tr v-for="i in bodegas" :key="i.nomBodega">
+                      <td scope="row">{{i.nomBodega}}</td>
+                      <td><b-button @click="ActProductos(i.nomBodega)" class="btn-warning btn-sm" style="border-color: white;">Enviar</b-button></td>
+                      <td><b-button @click="ActOrdenes(i.nomBodega)" class="btn-success btn-sm" style="border-color: white;">Ordenes</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -66,11 +62,7 @@
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Bodega</label>
                                 <select class="form-control" v-model="bodegaCrear">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in bodegas" :key="i.nomBodega" :value="i.nomBodega">{{i.nomBodega}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="2">
@@ -93,20 +85,24 @@
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
-                                <select class="form-control" @change="cambioProducto(i.producto, i.key)" v-model="i.producto">
-                                    <option v-for="i in prods" :key="i.producto" :value="i.producto">{{i.producto}}</option>
+                                <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="3">
+                            <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
-                                <input type="number" @change="cantMin(i.cantidad)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
+                                <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                             </b-col>
-                            <b-col cols="12" md="3">
-                                <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Stock en Bodega</label>
                                 <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
                             </b-col>
                             <b-col cols="12" md="2">
-                                <b-button class="btn-success boton">Detalles Producto</b-button>
+                                <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
+                                <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stockCritico">
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
                             </b-col>
                         </b-row>
                         <b-row>
@@ -119,12 +115,37 @@
                         </b-row>
                     </div>
                 </div>
+                <b-modal id="modal-1" title="Detalles del Producto">
+                <div class="card-body">
+                    <b-row class="mt-2">
+                        <b-col cols="12" md="4">
+                            <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
+                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
+                        </b-col>
+                        <b-col cols="12" md="4">
+                            <label for="exampleInputEmail1" class="form-label">Nombre</label>
+                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
+                        </b-col>
+                        <b-col cols="12" md="4">
+                            <label for="exampleInputEmail1" class="form-label">Marca</label>
+                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
+                        </b-col>
+                    </b-row>
+                    <b-row class="mt-4">
+                        <b-col cols="12" md="12">
+                            <label for="exampleInputEmail1" class="form-label">Descripcion</label>
+                            <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
+                        </b-col>
+                    </b-row>
+                    </div>
+                </b-modal>
+
                 <b-row v-if="pestaña === 'ordenes'">
                     <b-col cols="12" md="12">
                         <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Funcionarios</b-button>
                     </b-col>
                 </b-row>
-                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'ordenes'">
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="ordenes" v-if="pestaña === 'ordenes'">
                   <thead>
                     <tr>
                       <th scope="col">Codigo de Orden</th>
@@ -137,10 +158,10 @@
                   <tbody>
                     <tr v-for="i in ordenes" :key="i.codOrden">
                       <td scope="row">{{i.codOrden}}</td>
-                      <td>{{i.bodega}}</td>
+                      <td>{{i.nomBodega}}</td>
                       <td>{{i.proveedor}}</td>
                       <td>{{i.fecha}}</td>
-                      <td><b-button @click="ActOrdenes(i.codOrden)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                      <td><b-button @click="ActDOrdenes(i.codOrden)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -172,19 +193,25 @@ export default {
         ordenes: [],
         //Variables del AGREGAR
         nuevaBodega: '',
-        //Variable para reconocer un producto
-        codFuncionario: '',
+        //Variable para reconocer una bodega
+        nomBodega: '',
         //Datos para agregar una nueva Orden de Compra con v-model
         bodegaCrear: '',
         proveedor: '',
         nuevaOrden: '',
         cantidadProductos: 1,
-        productos: [{key: this.cantidadProductos, producto: '', cantidad: 1, stock: 0}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, stockCritico: 0, codigoBarra: ''}],
         prods: [],
+        productoAnt: '',
+        //VARIABLES DE DETALLES
+        codigo: '',
+        producto: '',
+        marca: '',
+        descripcion: '',
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
-        mensaje: {color: '', texto: ''}
+        mensaje: {color: '', texto: ''},
       }
     },
     validations:{
@@ -195,57 +222,85 @@ export default {
     },
     created(){
         this.cargarBodegas();
+        this.cargarProductos(true);
     },
     methods:{
-        //Función para cargar las bodegas del sistema
-        cargarBodegas(){
-            this.bodegas = [{producto: 'Bueno', codigoBarra: '8797828291', marca: 'XD', descripcion: 'Buen producto', stock: 20, stockbodega: 40}, {producto: 'Regular', codigoBarra: '879782asd8291', marca: 'XDD', descripcion: 'no tan bueno producto', stock: 25, stockbodega: 42}]
+        //METODOS PARA GENERAR LAS ORDENES DE COMPRA
+        //Metodo que Carga todos los productos del sistema
+        cargarProductos(primera){
+            this.axios.get('api/obtenerProductos')
+            .then(res => {
+                this.prods = res.data;
+                if(primera){
+                    this.productos[0].nomProducto = this.prods[0].nomProducto
+                    this.productos[0].stock = this.prods[0].stockBodega
+                    this.productos[0].stockCritico = this.prods[0].stockCritico
+                    this.productos[0].codigoBarra = this.prods[0].codigoBarra
+                }
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Productos');
+            })
         },
-        //Función para regresar a la vista principal
-        Volver(){
-            this.pestaña = 'bodegas'
-            $('#bodegas').DataTable()
-            this.cargarBodegas();
-        },
-        //Funciones para cambiar las vistas
-        ActAgregar(){
-            this.agregar = 'si'
-        },
-        NoAgregar(){
-            this.agregar = 'no'
-        },
-        ActOrdenes(codigoBarra){
-            this.codigoBarra = codigoBarra
-            this.pestaña = 'ordenes'
-            $('#bodegas').DataTable().destroy();
-            this.cargarOrdenes();
-        },
-        ActCrear(){
-            this.pestaña = 'crear'
-            this.agregar = 'no'
-            $('#bodegas').DataTable().destroy();
-            this.cargarProductos();
-        },
-        //Funciones para Rellenar una BODEGA
-        //Función que carga todos los productos del sistema
-        cargarProductos(){
-            this.prods = [{producto: 'Bueno', stock: 20}, {producto: 'Regular', stock: 10}, {producto: 'Malo', stock: 5}]
-            this.productos[0].producto = this.prods[0].producto
-            this.productos[0].stock = this.prods[0].stock
+        //Función que te permite guardar el valor anterior del select
+        anterior(nomProducto){
+            this.productoAnt = nomProducto
         },
         //Si se cambia un producto se debe buscar su stock
-        cambioProducto(producto, key){
-            const index = this.prods.findIndex(item => item.producto == producto);
-            const index2 = this.productos.findIndex(item => item.key == key);
-            console.log(index, index2)
-            this.productos[index2].stock = this.prods[index].stock
+        cambioProducto(nomProducto, key){
+            const indexActual = this.productos.findIndex(item => item.key == key);
+            var repetido = false;
+            for(var i = 0; i<this.productos.length; i++){
+                if(i != indexActual){
+                    if(this.productos[i].nomProducto === this.productos[indexActual].nomProducto){
+                        repetido = true;
+                    }
+                }
+            }
+            if(!repetido){
+                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index2 = this.productos.findIndex(item => item.key == key);
+                this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].stockCritico = this.prods[index].stockCritico
+                this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                if(this.productos[index2].cantidad > this.productos[index2].stock){
+                    this.productos[index2].cantidad = this.productos[index2].stock;
+                }
+                if(this.productos[index2].stock + this.productos[index2].cantidad < this.productos[index2].stockCritico){
+                    this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[index2].nomProducto + '" es inferior al stock crítico')
+                }
+            }else{
+                this.productos[indexActual].nomProducto = this.productoAnt  
+            }
         },
         //Se agrega un nuevo posible producto
+        //ADEMAS debe revisar si los valores anteriores estan repetidos
         agregaProducto(){
             this.cantidadProductos++
-            this.productos.push({key: this.cantidadProductos, producto: '', cantidad: 1, stock: 0});
-            this.productos[this.productos.length-1].producto = this.prods[0].producto
-            this.productos[this.productos.length-1].stock = this.prods[0].stock
+            var a = 0;
+            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0});
+            while(a < this.prods.length){
+                const index = this.productos.findIndex(item => item.nomProducto == this.prods[a].nomProducto);
+                if(index != -1){
+                    a++;
+                }else{
+                    this.productos[this.productos.length-1].nomProducto = this.prods[a].nomProducto
+                    this.productos[this.productos.length-1].stock = this.prods[a].stockBodega
+                    this.productos[this.productos.length-1].stockCritico = this.prods[a].stockCritico
+                    this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].key = this.cantidadProductos
+                    break;
+                }
+                if(a == this.prods.length){
+                    this.cantidadProductos--;
+                    this.productos.splice(-1);
+                    this.alerta('danger','No existen mas productos para agregar')
+                    break;
+                }
+            } 
+            if(this.productos[this.productos.length-1].stock < this.productos[this.productos.length-1].stockCritico && a != this.prods.length){
+                this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[this.productos.length-1].nomProducto + '" es inferior al stock crítico')
+            }
         },
         //Se quita un Producto de los que serán agregados al sistema
         quitarProducto(){
@@ -257,21 +312,221 @@ export default {
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
-        cantMin(cantidad){
-            const index = this.productos.findIndex(item => item.cantidad == cantidad);
-            if(cantidad < 1){
-                this.productos[index].cantidad = 1;
+        cantMin(producto){
+            const index = this.productos.findIndex(item => item.key == producto);
+            if(this.productos[index].cantidad < 0){
+                this.productos[index].cantidad = 0;
+            }
+            if(this.productos[index].stock + parseInt(this.productos[index].cantidad) < this.productos[index].stockCritico){
+                this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[index].nomProducto + '" es inferior al stock crítico ingrese mas cantidad para cumplir con el stock Crítico')
             }
         },
-        generarInforme(){
-
+        //Permite ver los detalles de un producto y los carga
+        detalles(id){
+            this.axios.get(`api/obtenerProducto/${id}`)
+                .then(res => {
+                    this.codigo = res.data[0].codigoBarra;
+                    this.producto = res.data[0].nomProducto;
+                    this.marca = res.data[0].marca;
+                    this.descripcion = res.data[0].descripcion
+                })
+                .catch(e => {
+                    Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'No se ha logrado encontrar los datos del equipo',
+                    footer: 'Posible error del sistema'
+                    })
+                })
         },
-        generar(){
+        convertDateMysql(yourDate){
+            yourDate.toISOString().split('T')[0]
+            const offset = yourDate.getTimezoneOffset()
+            yourDate = new Date(yourDate.getTime() - (offset*60*1000))
+            return yourDate.toISOString().split('T')[0]
+		},
+        //Función que permite generar un informe y enviar los datos de un nuevo HISTORIAL 
+        generarInforme(){
+            var dt = this.convertDateMysql(new Date())
+            this.$v.$touch()
+            if(!this.$v.nuevaOrden.$invalid && !this.$v.proveedor.$invalid){
+                swal.fire({
+                title: '¿Seguro que desea realizar la orden de compra a la bodega ' + this.bodegaCrear + '?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: '¡Si!'
+                }).then((result) => {
+                    if (result.value) {
+                        this.axios.post('api/agregaOrdenEntrega', {codOrden: this.nuevaOrden, proveedor: this.proveedor, fecha: dt, nomBodega: this.bodegaCrear})
+                        .then(res => {
+                        if(!res.data.sqlMessage){
+                            this.ORDENProducto();
+                            this.sumaStock();
+                        }else{
+                            Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado crear ',
+                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                            })
+                        }
+                        })
+                        .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la orden de compra',
+                            footer: 'Posible error del sistema'
+                        })
+                        }) 
+                    }
+                })
+            }else{
+                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos')
+            }
+        },
+        //Registra los productos de la ORDEN DE COMPRA
+        ORDENProducto(){
+            for(var i = 0; i<this.productos.length; i++){
+                this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra})
+                    .then(res => {
+                    if(!res.data.sqlMessage){
+                        Swal.fire(
+                        'Se ha registrado la orden de compra satisfactoriamente',
+                        'Seleccione Ok para continuar',
+                        'success'
+                        )
+                    }else{
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado crear ',
+                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                        })
+                    }
+                    })
+                    .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la orden de compra',
+                            footer: 'Posible error del sistema'
+                        })
+                    })
+            }
+        },
 
+        //Suma los stock de BODEGA de cada producto
+        sumaStock(){
+            for(var i = 0; i<this.productos.length; i++){
+                this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear})
+                    .then(res => {
+                        this.actualizarStock();
+                    })
+                    .catch(e => {
+                        var mensaje = 'Posible error del sistema';
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado registrar la entrega de insumos',
+                        footer: mensaje
+                        })
+                    })
+            }
+        },
+        //Actualiza la pagina tras generar una entrega de insumos
+        actualizarStock(){
+            for(var i = 0; i<this.productos.length-1; i++){
+                this.cantidadProductos--;
+                this.productos.splice(-1);
+            }
+            this.cargarProductos(true);
+        },
+        //Función para cargar las bodegas del sistema
+        cargarBodegas(){
+            this.axios.get('api/obtenerbodegas')
+            .then(res => {
+                this.bodegas = res.data;
+                this.bodegaCrear = res.data[0].nomBodega
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar las bodegas');
+            })
+        },
+        //Función para regresar a la vista principal
+        Volver(){
+            this.pestaña = 'bodegas'
+            $('#ordenes').DataTable().destroy()
+            $('#bodegas').DataTable()
+            this.cargarBodegas();
+        },
+        //Funciones para cambiar las vistas
+        ActAgregar(){
+            this.agregar = 'si'
+        },
+        NoAgregar(){
+            this.agregar = 'no'
+        },
+        
+        ActOrdenes(nomBodega){
+            this.nomBodega = nomBodega
+            this.pestaña = 'ordenes'
+            $('#bodegas').DataTable().destroy();
+            $('#ordenes').DataTable()
+            this.cargarOrdenes();
+        },
+        ActCrear(){
+            this.pestaña = 'crear'
+            this.agregar = 'no'
+            $('#bodegas').DataTable().destroy();
+            this.cargarProductos();
         },
         //Funciones de AGREGAR
         agregaBodega(){
-            console.log('Agregar')
+            this.$v.$touch()
+            if(!this.$v.nuevaBodega.$invalid){
+                this.axios.post('api/agregaBodega', {nomBodega: this.nuevaBodega})
+                    .then(res => {
+                        if(!res.data.sqlMessage){
+                            this.bodegas.push({nomBodega: this.nuevaBodega})
+                            Swal.fire(
+                            'Se ha registrado la bodega satisfactoriamente',
+                            'Seleccione Ok para continuar',
+                            'success'
+                            )
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado crear la nueva bodega "' + this.nuevaBodega + '" .',
+                                footer: 'El nombre de la bodega ya existe en el sistema'
+                            })
+                        }
+                        })
+                        .catch(e => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado registrar la nueva bodega',
+                                footer: 'Posible error del sistema'
+                            })
+                        })
+            }else{
+                this.alerta('danger', 'Porfavor ingrese un nombre para la nueva bodega')
+            }
+        },
+        //TABLA DE ORDENES QUE POSEE UNA BODEGA
+        cargarOrdenes(){
+            this.axios.get(`api/obtenerOrdenesBodega/${this.nomBodega}`)
+            .then(res => {
+                this.ordenes = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar la orden');
+            })
         },
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
@@ -287,6 +542,7 @@ export default {
     },
     async mounted(){
       await $('#bodegas').DataTable()
+      await $('#ordenes').DataTable()
     },
     watch: {
       bodegas(val) {
@@ -294,6 +550,14 @@ export default {
           $('#bodegas').DataTable().destroy();
           this.$nextTick(()=> {
             $('#bodegas').DataTable()
+          });
+        }
+      },
+      ordenes(val) {
+        if(this.pestaña === 'ordenes'){
+          $('#ordenes').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#ordenes').DataTable()
           });
         }
       }
@@ -311,7 +575,7 @@ export default {
     }
 
     .imagen{
-        width: 100%;
+        width: 50%;
     }
     .boton{
         margin: 20px;
