@@ -21,8 +21,8 @@
                                     Nombre
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
-                                    <li><a class="dropdown-item" href="#">Ver perfil</a></li>
-                                    <li><a class="dropdown-item" href="#" >Gestión de Usuarios</a></li>
+                                    <li><router-link to="/configuracion"><a class="dropdown-item" href="#">Ver perfil</a></router-link></li>
+                                    <li><router-link to="/agregaUsuario"><a class="dropdown-item" href="#" >Gestión de Usuarios</a></router-link></li>
                                     <li><a class="dropdown-item" href="#">Cerrar sesión</a></li>
                                 </ul>
                                 </div>

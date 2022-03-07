@@ -135,7 +135,7 @@ export default {
     methods:{
         //Metodo que Carga todos los productos del sistema
         cargarProductos(primera){
-            this.axios.get('api/obtenerProductos')
+            this.axios.get('api/obtenerProductosSolos')
             .then(res => {
                 this.prods = res.data;
                 if(primera){
@@ -252,6 +252,12 @@ export default {
         //Función que permite generar un informe y enviar los datos de un nuevo HISTORIAL 
         generarInforme(){
             var dt = this.convertDateMysql(new Date())
+            var sumaStock = 0;
+            var suma = 0;
+            for(var i = 0; i < this.productos.length; i++){
+                sumaStock = sumaStock + this.productos[i].stock
+                suma = suma + this.productos[i].cantidad
+            }
             swal.fire({
             title: '¿Seguro que desea realizar la entregsa de Insumos ' + this.dueño + '?',
             type: 'warning',
@@ -262,77 +268,87 @@ export default {
             confirmButtonText: '¡Si!'
             }).then((result) => {
                 if (result.value) {
-                    this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia})
-                    .then(res => {
-                    if(!res.data.sqlMessage){
-                        this.HistorialProducto();
-                        this.restarStock();
-                    }else{
-                        Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado crear ',
-                        footer: 'Algún dato ha sido incorrecto verifiquelos'
+                    if(sumaStock > 0 && suma > 0 ){
+                        this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia})
+                        .then(res => {
+                        if(!res.data.sqlMessage){
+                            this.HistorialProducto();
+                            this.restarStock();
+                        }else{
+                            Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado crear ',
+                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                            })
+                        }
                         })
+                        .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la entrega de insumos',
+                            footer: 'Posible error del sistema'
+                        })
+                        }) 
+                    }else if(sumaStock < 0){
+                        this.alerta('danger', 'No se encuentra stock disponible')
+                    }else{
+                        this.alerta('danger', 'No se ha ingresado ninguna cantidad')
                     }
-                    })
-                    .catch(e => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado registrar la entrega de insumos',
-                        footer: 'Posible error del sistema'
-                    })
-                    }) 
                 }
             })
         },
         //Registra los productos de esta ENTREGA DE INSUMOS 
         HistorialProducto(){
             for(var i = 0; i<this.productos.length; i++){
-                this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra})
-                    .then(res => {
-                    if(!res.data.sqlMessage){
-                        Swal.fire(
-                        'Se ha registrado la entrega de insumos correctamente',
-                        'Seleccione Ok para continuar',
-                        'success'
-                        )
-                    }else{
-                        Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado crear ',
-                        footer: 'Algún dato ha sido incorrecto verifiquelos'
+                if(this.productos[i].cantidad > 0){
+                    this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra})
+                        .then(res => {
+                        if(!res.data.sqlMessage){
+                            Swal.fire(
+                            'Se ha registrado la entrega de insumos correctamente',
+                            'Seleccione Ok para continuar',
+                            'success'
+                            )
+                        }else{
+                            Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado crear ',
+                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                            })
+                        }
                         })
-                    }
-                    })
-                    .catch(e => {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado registrar la entrega de insumos',
-                        footer: 'Posible error del sistema'
-                    })
-                    })
+                        .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la entrega de insumos',
+                            footer: 'Posible error del sistema'
+                        })
+                        })
+                }
             }
         },
         //Resta los stock de cada producto
         restarStock(){
             for(var i = 0; i<this.productos.length; i++){
-                this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad})
-                    .then(res => {
-                        this.actualizarStock();
-                    })
-                    .catch(e => {
-                        var mensaje = 'Posible error del sistema';
-                        Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado registrar la entrega de insumos',
-                        footer: mensaje
+                if(this.productos[i].cantidad > 0){
+                    this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad})
+                        .then(res => {
+                            this.actualizarStock();
                         })
-                    })
+                        .catch(e => {
+                            var mensaje = 'Posible error del sistema';
+                            Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la entrega de insumos',
+                            footer: mensaje
+                            })
+                        })
+                }
             }
         },
         //Actualiza la pagina tras generar una entrega de insumos

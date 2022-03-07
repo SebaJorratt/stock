@@ -64,18 +64,14 @@
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Tipo de la Dependencia</label>
                                 <select class="form-control" v-model="tipoAgregar">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in tipos" :key="i">{{i}}</option>
                                 </select>
                             </b-col>
                         </b-row>
                         <b-row class="mt-4">
                             <b-col cols="12" md="6">
                                 <label for="exampleInputEmail1" class="form-label">Comuna de la Dependencia</label>
-                                <select class="form-control" v-model="comunaAgregar">
+                                <select class="form-control mh" v-model="comunaAgregar">
                                     <option v-for="i in comunas" :key="i">{{i}}</option>
                                 </select>
                             </b-col>
@@ -109,11 +105,7 @@
                             <b-col cols="12" md="6">
                                 <label for="exampleInputEmail1" class="form-label">Tipo de la Dependencia</label>
                                 <select class="form-control" v-model="tipo">
-                                    <option disabled value="">Seleccione un estado posible</option>
-                                    <option>Bueno</option>
-                                    <option>Regular</option>
-                                    <option>Malo</option>
-                                    <option>Baja</option>
+                                    <option v-for="i in tipos" :key="i">{{i}}</option>
                                 </select>
                             </b-col>
                         </b-row>
@@ -217,6 +209,7 @@ export default {
         detalleHist: [],
         comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
                 'Punitaqui', 'Río Hurtado'],
+        tipos: ['Tipo de Prueba', 'Malo'],
         //Variables del AGREGAR
         codDependenciaAgregar: '',
         nomDependenciaAgregar: '',
@@ -250,6 +243,7 @@ export default {
     created(){
         this.cargarDependencias();
         this.comunaAgregar = this.comunas[0];
+        this.tipoAgregar = this.tipos[0];
     },
     methods:{
         //Función que carga todas las dependencias
@@ -479,6 +473,7 @@ export default {
             this.showAlert();
         },
     },
+    
     async mounted(){
       await $('#dependencias').DataTable()
       await $('#historial').DataTable()
@@ -531,4 +526,5 @@ export default {
         border-radius: 12px !important;
         border-color: black !important;
     }
+    
 </style>

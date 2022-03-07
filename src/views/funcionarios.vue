@@ -18,7 +18,7 @@
             <div class="mt-1">
                 <b-row v-if="pestaña === 'funcionarios'">
                     <b-col cols="12" md="12">
-                        <b-button @click="ActAgregar()" class="btn-success btn boton mt-5">Agregar Dependencia</b-button>
+                        <b-button @click="ActAgregar()" class="btn-success btn boton mt-5">Agregar Funcionario</b-button>
                     </b-col>
                 </b-row>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="funcionarios" v-if="pestaña === 'funcionarios'">

@@ -7,7 +7,7 @@
             <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos del producto: {{codigoBarra}}</h2>
             <h2 class="mt-1" v-if="pestaña === 'ordenes'"> Ordenes de compra del producto: {{codigoBarra}}</h2> 
             <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
-            <h2 class="mt-1" v-if="pestaña === 'detalleOrd'"> Detalle de la orden de compra numero: {{histo}}</h2>
+            <h2 class="mt-1" v-if="pestaña === 'detalleOrden'"> Detalle de la orden de compra numero: {{histo}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -30,9 +30,6 @@
                       <th scope="col">Codigo de Barras</th>
                       <th scope="col">Marca</th>
                       <th scope="col">Stock DirecReg</th>
-                      <th scope="col">Stock Bodegas</th>
-                      <th scope="col">Stock Critico</th>
-                      <th scope="col">Nombre Bodega</th>
                       <th scope="col">Edición</th>
                       <th scope="col">Historial Entregas</th>
                       <th scope="col">Ordenes de compras</th>
@@ -44,9 +41,6 @@
                       <td>{{i.codigoBarra}}</td>
                       <td>{{i.marca}}</td>
                       <td>{{i.stock}}</td>
-                      <td>{{i.stockBodega}}</td>
-                      <td>{{i.stockCritico}}</td>
-                      <td>{{i.nomBodega}}</td>
                       <td><b-button @click="Acteditar(i.codigoBarra)" class="btn-warning btn-sm" style="border-color: white;">Editar</b-button></td>
                       <td><b-button @click="ActHist(i.codigoBarra)" class="btn btn-sm" style="border-color: white;">Historial</b-button></td>
                       <td><b-button @click="ActOrdenes(i.codigoBarra)" class="btn-success btn-sm" style="border-color: white;">Ordenes</b-button></td>
@@ -132,12 +126,13 @@
                         </b-row>
                         <b-row class="mt-4">
                             <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Nombre Bodega</label>
-                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="nomBodegaEditar">
+                                <b-button @click="EditarStockCritico()" class="btn-warning btn-sm boton">Editar Stock Critico</b-button>
                             </b-col>
                             <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Stock de Bodega</label>
-                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="stockBodegaEditar">
+                                <label for="exampleInputEmail1" class="form-label">Nombre de la Bodega</label>
+                                <select class="form-control" @change="recargarCritico()" v-model="nomBodegaEditar">
+                                    <option v-for="i in bod" :key="i.nomBodega" :value="i.nomBodega">{{i.nomBodega}}</option>
+                                </select>
                             </b-col>
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
@@ -322,7 +317,7 @@ export default {
     methods:{
         //Funcion que carga todos los productos del sistema
         cargarProductos(){
-            this.axios.get('api/obtenerProductos')
+            this.axios.get('api/obtenerProductosSolos')
             .then(res => {
                 this.productos = res.data;
             })
@@ -335,6 +330,7 @@ export default {
             this.axios.get('api/obtenerbodegas')
             .then(res => {
                 this.bod = res.data;
+                this.nomBodegaEditar = res.data[0].nomBodega
                 this.llenarBodegas();
             })
             .catch(e => {
@@ -494,12 +490,21 @@ export default {
             this.producto = data.nomProducto
             this.marca = data.marca
             this.descripcion = data.descripcion
-            this.nomBodegaEditar = data.nomBodega
-            this.stockCriticoEditar = data.stockCritico
-            this.stockBodegaEditar = data.stockBodega
-            if(data.stockCritico > data.stockBodega){
-                this.alerta('danger', 'El stock critico es superior al stock actual en la bodega ' + data.nomBodega)
-            }
+            this.ObtenerStockCritico();
+        },
+        //Función que recarga la función siguiente paraq un stock Critico
+        recargarCritico(){
+            this.ObtenerStockCritico();
+        },
+        //Función que obtiene el stockCritio actual del producto según la bodega seleccionada en el editar
+        ObtenerStockCritico(){
+            this.axios.get(`api/obtenerProductoBodega/${this.codigoBarra}/${this.nomBodegaEditar}`)
+            .then(res => {
+                this.stockCriticoEditar = res.data[0].stockCritico;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el stock Critico');
+            })
         },
         //Editar un producto 
         EditarProducto(){
@@ -508,7 +513,11 @@ export default {
                 this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion})
                     .then(res => {
                     if(!res.data.sqlMessage){
-                        this.EditarStockCritico();
+                        Swal.fire(
+                        'Se ha editado al producto satisfactoriamente',
+                        'Seleccione Ok para continuar',
+                        'success'
+                        )
                     }else{
                         Swal.fire({
                         icon: 'error',
@@ -527,11 +536,11 @@ export default {
         },
         //EDITAR EL STOCK CRITICO
         EditarStockCritico(){
-            this.axios.put(`api/editarstockCritico/${this.codigoBarra}`, {stockCritico: this.stockCriticoEditar})
+            this.axios.put(`api/editarstockCritico/${this.codigoBarra}`, {stockCritico: this.stockCriticoEditar, nomBodega: this.nomBodegaEditar})
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
-                    'Se ha editado al producto satisfactoriamente',
+                    'Se ha editado el stock critico del producto de forma satisfactoria',
                     'Seleccione Ok para continuar',
                     'success'
                     )
@@ -592,9 +601,6 @@ export default {
         cantMinCriticoEditar(){
             if(this.stockCriticoEditar < 1){
                 this.stockCriticoEditar = 1;
-            }
-            if(this.stockCriticoEditar > this.stockBodegaEditar){
-                this.alerta('danger', 'El stock critico que esta ingresando es superior al stock actual')
             }
         },
         countDownChanged(dismissCountDown) {

@@ -61,7 +61,7 @@
                         <b-row class="mt-2">
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Bodega</label>
-                                <select class="form-control" v-model="bodegaCrear">
+                                <select @change="cambiaBodega()" class="form-control" v-model="bodegaCrear">
                                     <option v-for="i in bodegas" :key="i.nomBodega" :value="i.nomBodega">{{i.nomBodega}}</option>
                                 </select>
                             </b-col>
@@ -142,7 +142,7 @@
 
                 <b-row v-if="pestaña === 'ordenes'">
                     <b-col cols="12" md="12">
-                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Funcionarios</b-button>
+                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver al Listado de Bodegas</b-button>
                     </b-col>
                 </b-row>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="ordenes" v-if="pestaña === 'ordenes'">
@@ -162,6 +162,60 @@
                       <td>{{i.proveedor}}</td>
                       <td>{{i.fecha}}</td>
                       <td><b-button @click="ActDOrdenes(i.codOrden)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'detalleOrden'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverORD()" class="btn btn boton mt-5">Volver al Historial</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="detalleOrden" v-if="pestaña === 'detalleOrden'">
+                  <thead>
+                    <tr>
+                      <th scope="col">ID</th>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Producto</th>
+                      <th scope="col">Cantidad</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in detalleOrden" :key="i.corrOrdenProducto">
+                      <td scope="row">{{i.corrOrdenProducto}}</td>
+                      <td>{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.cantidad}}</td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <b-row v-if="pestaña === 'enviar'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver al Listado de Bodegas</b-button>
+                    </b-col>
+                </b-row>
+                <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="enviar" v-if="pestaña === 'enviar'">
+                  <thead>
+                    <tr>
+                      <th scope="col">Codigo Barra</th>
+                      <th scope="col">Nombre Producto</th>
+                      <th scope="col">Stock Regional</th>
+                      <th scope="col">Stock Bodega</th>
+                      <th scope="col">Cantidad</th>
+                      <th scope="col">Stock Critico</th>
+                      <th scope="col">Enviar a Dirección</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="i in enviar" :key="i.codigoBarra">
+                      <td scope="row">{{i.codigoBarra}}</td>
+                      <td>{{i.nomProducto}}</td>
+                      <td>{{i.stock}}</td>
+                      <td>{{i.stockBodega}}</td>
+                      <td><input type="number" @change="cantMinBodega(i.codigoBarra)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad"></td>
+                      <td>{{i.stockCritico}}</td>
+                      <td><b-button @click="EnviarDireccion(i.codigoBarra, i.cantidad)" class="btn-success btn-sm" style="border-color: white;">Enviar</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -191,6 +245,8 @@ export default {
         agregar: 'no',
         bodegas: [],
         ordenes: [],
+        detalleOrden: [],
+        enviar: [],
         //Variables del AGREGAR
         nuevaBodega: '',
         //Variable para reconocer una bodega
@@ -222,13 +278,12 @@ export default {
     },
     created(){
         this.cargarBodegas();
-        this.cargarProductos(true);
     },
     methods:{
         //METODOS PARA GENERAR LAS ORDENES DE COMPRA
         //Metodo que Carga todos los productos del sistema
         cargarProductos(primera){
-            this.axios.get('api/obtenerProductos')
+            this.axios.get(`api/obtenerProductosBodega/${this.bodegaCrear}`)
             .then(res => {
                 this.prods = res.data;
                 if(primera){
@@ -241,6 +296,25 @@ export default {
             .catch(e => {
                 this.alerta('danger', 'No se han podido cargar los Productos');
             })
+        },
+        //Función que carga los productos de una bodega para trasferir productos a Dirección Regional
+        cargarProductosBodega(){
+            this.axios.get(`api/obtenerProductosBodega/${this.nomBodega}`)
+            .then(res => {
+                for(var i = 0; i<res.data.length; i++){
+                    this.enviar.push({codigoBarra: res.data[i].codigoBarra, nomProducto: res.data[i].nomProducto, stock: res.data[i].stock, stockBodega: res.data[i].stockBodega, cantidad: 1, stockCritico: res.data[i].stockCritico})
+                }
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Productos');
+            })
+        },
+        //Función que permite re-cargar los productos al momento de cambiar la bodega en la vista de rellenar Bodega
+        cambiaBodega(){
+            for(var i = 0; i<this.productos.length-1; i++){
+                this.productos.splice(-1)
+            }
+            this.cargarProductos(true)
         },
         //Función que te permite guardar el valor anterior del select
         anterior(nomProducto){
@@ -260,7 +334,7 @@ export default {
             if(!repetido){
                 const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
                 const index2 = this.productos.findIndex(item => item.key == key);
-                this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].stock = this.prods[index].stockBodega
                 this.productos[index2].stockCritico = this.prods[index].stockCritico
                 this.productos[index2].codigoBarra = this.prods[index].codigoBarra
                 if(this.productos[index2].cantidad > this.productos[index2].stock){
@@ -321,6 +395,16 @@ export default {
                 this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[index].nomProducto + '" es inferior al stock crítico ingrese mas cantidad para cumplir con el stock Crítico')
             }
         },
+        //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
+        cantMinBodega(producto){
+            const index = this.enviar.findIndex(item => item.codigoBarra == producto);
+            if(this.enviar[index].cantidad < 0){
+                this.enviar[index].cantidad = 0;
+            }
+            if(this.enviar[index].stockBodega - parseInt(this.enviar[index].cantidad) < this.enviar[index].stockCritico){
+                this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.enviar[index].nomProducto + '" es inferior al stock crítico ingrese mas cantidad para cumplir con el stock Crítico')
+            }
+        },
         //Permite ver los detalles de un producto y los carga
         detalles(id){
             this.axios.get(`api/obtenerProducto/${id}`)
@@ -348,6 +432,12 @@ export default {
         //Función que permite generar un informe y enviar los datos de un nuevo HISTORIAL 
         generarInforme(){
             var dt = this.convertDateMysql(new Date())
+            var sumaStockBodega = 0;
+            var suma = 0;
+            for(var i = 0; i < this.productos.length; i++){
+                sumaStockBodega = sumaStockBodega + this.productos[i].stock
+                suma = suma + this.productos[i].cantidad
+            }
             this.$v.$touch()
             if(!this.$v.nuevaOrden.$invalid && !this.$v.proveedor.$invalid){
                 swal.fire({
@@ -360,28 +450,34 @@ export default {
                 confirmButtonText: '¡Si!'
                 }).then((result) => {
                     if (result.value) {
-                        this.axios.post('api/agregaOrdenEntrega', {codOrden: this.nuevaOrden, proveedor: this.proveedor, fecha: dt, nomBodega: this.bodegaCrear})
-                        .then(res => {
-                        if(!res.data.sqlMessage){
-                            this.ORDENProducto();
-                            this.sumaStock();
-                        }else{
-                            Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'No se ha logrado crear ',
-                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                        if(sumaStockBodega > 0 && suma > 0){
+                            this.axios.post('api/agregaOrdenEntrega', {codOrden: this.nuevaOrden, proveedor: this.proveedor, fecha: dt, nomBodega: this.bodegaCrear})
+                            .then(res => {
+                            if(!res.data.sqlMessage){
+                                this.ORDENProducto();
+                                this.sumaStock();
+                            }else{
+                                Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado crear ',
+                                footer: 'Algún dato ha sido incorrecto verifiquelos'
+                                })
+                            }
                             })
+                            .catch(e => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado registrar la orden de compra',
+                                footer: 'Posible error del sistema'
+                            })
+                            }) 
+                        }else if(sumaStockBodega > 0){
+                            this.alerta('danger', 'No se encuentra stock disponible en bodega')
+                        }else{
+                            this.alerta('danger', 'No se ha ingresado ninguna cantidad')
                         }
-                        })
-                        .catch(e => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'No se ha logrado registrar la orden de compra',
-                            footer: 'Posible error del sistema'
-                        })
-                        }) 
                     }
                 })
             }else{
@@ -391,50 +487,54 @@ export default {
         //Registra los productos de la ORDEN DE COMPRA
         ORDENProducto(){
             for(var i = 0; i<this.productos.length; i++){
-                this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra})
-                    .then(res => {
-                    if(!res.data.sqlMessage){
-                        Swal.fire(
-                        'Se ha registrado la orden de compra satisfactoriamente',
-                        'Seleccione Ok para continuar',
-                        'success'
-                        )
-                    }else{
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'No se ha logrado crear ',
-                            footer: 'Algún dato ha sido incorrecto verifiquelos'
+                if(this.productos[i].cantidad > 0){
+                    this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra})
+                        .then(res => {
+                        if(!res.data.sqlMessage){
+                            Swal.fire(
+                            'Se ha registrado la orden de compra satisfactoriamente',
+                            'Seleccione Ok para continuar',
+                            'success'
+                            )
+                        }else{
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado crear ',
+                                footer: 'Algún dato ha sido incorrecto verifiquelos'
+                            })
+                        }
                         })
-                    }
-                    })
-                    .catch(e => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'No se ha logrado registrar la orden de compra',
-                            footer: 'Posible error del sistema'
+                        .catch(e => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado registrar la orden de compra',
+                                footer: 'Posible error del sistema'
+                            })
                         })
-                    })
+                }
             }
         },
 
         //Suma los stock de BODEGA de cada producto
         sumaStock(){
             for(var i = 0; i<this.productos.length; i++){
-                this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear})
-                    .then(res => {
-                        this.actualizarStock();
-                    })
-                    .catch(e => {
-                        var mensaje = 'Posible error del sistema';
-                        Swal.fire({
-                        icon: 'error',
-                        title: 'Oops...',
-                        text: 'No se ha logrado registrar la entrega de insumos',
-                        footer: mensaje
+                if(this.productos[i].cantidad > 0){
+                    this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear})
+                        .then(res => {
+                            this.actualizarStock();
                         })
-                    })
+                        .catch(e => {
+                            var mensaje = 'Posible error del sistema';
+                            Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la entrega de insumos',
+                            footer: mensaje
+                            })
+                        })
+                }
             }
         },
         //Actualiza la pagina tras generar una entrega de insumos
@@ -460,8 +560,16 @@ export default {
         Volver(){
             this.pestaña = 'bodegas'
             $('#ordenes').DataTable().destroy()
+            $('#enviar').DataTable().destroy()
+            this.enviar = []
             $('#bodegas').DataTable()
             this.cargarBodegas();
+        },
+        VolverORD(){
+            $('#detalleOrden').DataTable().destroy();
+            this.pestaña = 'ordenes'
+            this.cargarOrdenes();
+            $('#ordenes').DataTable()
         },
         //Funciones para cambiar las vistas
         ActAgregar(){
@@ -478,11 +586,25 @@ export default {
             $('#ordenes').DataTable()
             this.cargarOrdenes();
         },
+        ActDOrdenes(codOrden){
+            this.histo = codOrden;
+            this.pestaña = 'detalleOrden';
+            $('#ordenes').DataTable().destroy();
+            $('#detalleOrden').DataTable()
+            this.cargarDetalleOrden();
+        },
         ActCrear(){
             this.pestaña = 'crear'
             this.agregar = 'no'
             $('#bodegas').DataTable().destroy();
-            this.cargarProductos();
+            this.cargarProductos(true);
+        },
+        ActProductos(nomBodega){
+            this.nomBodega = nomBodega
+            this.pestaña = 'enviar'
+            $('#bodegas').DataTable().destroy();
+            $('#enviar').DataTable()
+            this.cargarProductosBodega();
         },
         //Funciones de AGREGAR
         agregaBodega(){
@@ -528,6 +650,72 @@ export default {
                 this.alerta('danger', 'No se ha logrado cargar la orden');
             })
         },
+        //Cargar los detalles de una orden
+        cargarDetalleOrden(){
+            this.axios.get(`api/obtenerOrden/${this.histo}`)
+            .then(res => {
+                this.detalleOrden = res.data;
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado cargar el detalle de una orden');
+            })
+        },
+        //Función que envia un stock desde bodega a Dirección Regional
+        EnviarDireccion(codigoBarra, cantidad){
+            swal.fire({
+                title: '¿Seguro que desea enviar el stock de la bodega con una cantidad de "' + cantidad + '" a dirección regional para el producto de codigo: "' + codigoBarra + '"?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: '¡Si!'
+            }).then((result) => {
+                if (result.value) {
+                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: cantidad, nomBodega: this.nomBodega})
+                            .then(res => {
+                                this.recibirDireccion(codigoBarra, cantidad);
+                            })
+                            .catch(e => {
+                                var mensaje = 'Posible error del sistema';
+                                Swal.fire({
+                                icon: 'error',
+                                title: 'Oops...',
+                                text: 'No se ha logrado traspasar los stocks',
+                                footer: mensaje
+                                })
+                            })
+                }
+            })
+        },
+        //Función que permite actualizar el stock de un producto en la dirección Regional
+        recibirDireccion(codigoBarra, cantidad){
+            this.axios.put(`api/actualizaStockmas/${codigoBarra}`, {cantidad: cantidad})
+                    .then(res => {
+                        Swal.fire(
+                            'Se ha realizado un traspaso de stock a Dirección Regional',
+                            'Seleccione Ok para continuar',
+                            'success'
+                        )
+                        this.actualizarStocksProductoBodega(codigoBarra, cantidad)
+                    })
+                    .catch(e => {
+                        var mensaje = 'Posible error del sistema';
+                        Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado recibir el stock en dirección regional',
+                        footer: mensaje
+                        })
+                    })
+        },
+        //Función que actualiza los stock en la vista de la página
+        actualizarStocksProductoBodega(codigoBarra, cantidad){
+            const index = this.enviar.findIndex(item => item.codigoBarra == codigoBarra);
+            this.enviar[index].stockBodega = this.enviar[index].stockBodega - cantidad
+            this.enviar[index].stock = this.enviar[index].stock + cantidad
+        },
+        //Funciones de las alertas
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
         },
@@ -543,6 +731,8 @@ export default {
     async mounted(){
       await $('#bodegas').DataTable()
       await $('#ordenes').DataTable()
+      await $('#detalleOrden').DataTable()
+      await $('#enviar').DataTable()
     },
     watch: {
       bodegas(val) {
@@ -558,6 +748,22 @@ export default {
           $('#ordenes').DataTable().destroy();
           this.$nextTick(()=> {
             $('#ordenes').DataTable()
+          });
+        }
+      },
+      detalleOrden(val) {
+        if(this.pestaña === 'detalleOrden'){
+          $('#detalleOrden').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#detalleOrden').DataTable()
+          });
+        }
+      },
+      enviar(val) {
+        if(this.pestaña === 'enviar'){
+          $('#enviar').DataTable().destroy();
+          this.$nextTick(()=> {
+            $('#enviar').DataTable()
           });
         }
       }

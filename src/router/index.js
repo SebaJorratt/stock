@@ -39,6 +39,16 @@ const routes = [
     path: '/bodegas',
     name: 'bodegas',
     component: () => import('../views/bodegas.vue'),
+  },
+  {
+    path: '/agregaUsuario',
+    name: 'agregaUsuario',
+    component: () => import('../views/agregarUsuario.vue')
+  },
+  {
+    path: '/configuracion',
+    name: 'configuracion',
+    component: () => import('../views/configuracion.vue')
   }
 ]
 
