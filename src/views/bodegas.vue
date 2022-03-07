@@ -110,7 +110,7 @@
                                 <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar Orden de Compra</b-button>
                             </b-col> 
                             <b-col cols="12" md="6">
-                                <b-button @click="generar()" class="btn-success btn boton mt-5">Compra en Caja Menor</b-button>
+                                <b-button @click="sumaStock()" class="btn-success btn boton mt-5">Compra en Caja Menor</b-button>
                             </b-col> 
                         </b-row>
                     </div>
