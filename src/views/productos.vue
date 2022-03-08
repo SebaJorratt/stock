@@ -262,6 +262,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "datatables.net-dt/js/dataTables.dataTables"
 import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
+
+import { mapState } from 'vuex'
 export default {
     name: "about",
     components: {
@@ -310,6 +312,9 @@ export default {
         marca:{required},
         descripcion:{required},
     },
+    computed: {
+      ...mapState(['token', 'usuarioDB'])
+    },
     created(){
         this.cargarProductos();
         this.cargarBodegas();
@@ -317,7 +322,12 @@ export default {
     methods:{
         //Funcion que carga todos los productos del sistema
         cargarProductos(){
-            this.axios.get('api/obtenerProductosSolos')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerProductosSolos', config)
             .then(res => {
                 this.productos = res.data;
             })
@@ -327,7 +337,12 @@ export default {
         },
         //Función que se encarga de obtener todas las bodegas existentes
         cargarBodegas(){
-            this.axios.get('api/obtenerbodegas')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerbodegas', config)
             .then(res => {
                 this.bod = res.data;
                 this.nomBodegaEditar = res.data[0].nomBodega
@@ -407,7 +422,12 @@ export default {
         AgregarProducto(){
             this.$v.$touch()
             if(!this.$v.codigoAgregar.$invalid && !this.$v.productoAgregar.$invalid && !this.$v.marcaAgregar.$invalid && !this.$v.descripcionAgrega.$invalid){
-                this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         this.agregarStock();
@@ -435,7 +455,12 @@ export default {
         //Funcion que agrega el stock del Producto
         agregarStock(){
             for(var i = 0; i < this.bodegas.length; i++){
-                this.axios.post('api/agregaProductoBodega', {stockBodega: this.bodegas[i].stockBodega, stockCritico: this.bodegas[i].stockCritico, nomBodega: this.bodegas[i].nomBodega, codigoBarra: this.codigoAgregar})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaProductoBodega', {stockBodega: this.bodegas[i].stockBodega, stockCritico: this.bodegas[i].stockCritico, nomBodega: this.bodegas[i].nomBodega, codigoBarra: this.codigoAgregar}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         Swal.fire(
@@ -498,7 +523,12 @@ export default {
         },
         //Función que obtiene el stockCritio actual del producto según la bodega seleccionada en el editar
         ObtenerStockCritico(){
-            this.axios.get(`api/obtenerProductoBodega/${this.codigoBarra}/${this.nomBodegaEditar}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProductoBodega/${this.codigoBarra}/${this.nomBodegaEditar}`, config)
             .then(res => {
                 this.stockCriticoEditar = res.data[0].stockCritico;
             })
@@ -510,7 +540,12 @@ export default {
         EditarProducto(){
             this.$v.$touch()
             if(!this.$v.producto.$invalid && !this.$v.marca.$invalid && !this.$v.descripcion.$invalid){
-                this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         Swal.fire(
@@ -536,7 +571,12 @@ export default {
         },
         //EDITAR EL STOCK CRITICO
         EditarStockCritico(){
-            this.axios.put(`api/editarstockCritico/${this.codigoBarra}`, {stockCritico: this.stockCriticoEditar, nomBodega: this.nomBodegaEditar})
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.put(`api/editarstockCritico/${this.codigoBarra}`, {stockCritico: this.stockCriticoEditar, nomBodega: this.nomBodegaEditar}, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
@@ -559,7 +599,12 @@ export default {
         },
         //CARGAR DATOS DE TABLA HISTORIAL
         cargarHistorial(){
-            this.axios.get(`api/obtenerHistorialesProducto/${this.codigoBarra}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorialesProducto/${this.codigoBarra}`, config)
             .then(res => {
                 this.historial = res.data;
             })
@@ -569,7 +614,12 @@ export default {
         },
         //Caragar tabla de ordenes de compra de un producto
         cargarOrdenes(){
-            this.axios.get(`api/obtenerOrdenesProducto/${this.codigoBarra}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerOrdenesProducto/${this.codigoBarra}`, config)
             .then(res => {
                 this.ordenes = res.data;
             })
@@ -579,7 +629,12 @@ export default {
         },
         //Cargar los detalles de un historial
         cargarDetalleHistorial(){
-            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorial/${this.histo}`, config)
             .then(res => {
                 this.detalleHist = res.data;
             })
@@ -589,7 +644,12 @@ export default {
         },
         //Cargar los detalles de una orden
         cargarDetalleOrden(){
-            this.axios.get(`api/obtenerOrden/${this.histo}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerOrden/${this.histo}`, config)
             .then(res => {
                 this.detalleOrden = res.data;
             })

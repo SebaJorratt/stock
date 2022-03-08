@@ -195,6 +195,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "datatables.net-dt/js/dataTables.dataTables"
 import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
+
+import { mapState } from 'vuex'
 export default {
     name: "about",
     components: {
@@ -240,6 +242,9 @@ export default {
         nomDependencia:{required},
         direccion:{required},
     },
+    computed: {
+      ...mapState(['token', 'usuarioDB'])
+    },
     created(){
         this.cargarDependencias();
         this.comunaAgregar = this.comunas[0];
@@ -248,7 +253,12 @@ export default {
     methods:{
         //Función que carga todas las dependencias
         cargarDependencias(){
-            this.axios.get('api/obtenerDependencias')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerDependencias', config)
             .then(res => {
                 this.dependencias = res.data;
             })
@@ -299,7 +309,12 @@ export default {
         AgregarUbicacion(){
             this.$v.$touch()
             if(!this.$v.codDependenciaAgregar.$invalid && !this.$v.nomDependenciaAgregar.$invalid && !this.$v.direccionAgregar.$invalid){
-                this.axios.post('api/agregaUbicacion', {comuna: this.comunaAgregar, direccion: this.direccionAgregar})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaUbicacion', {comuna: this.comunaAgregar, direccion: this.direccionAgregar}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         this.AgregarDependencia();
@@ -326,7 +341,12 @@ export default {
         },
         //Función que se encarga de agregar una nueva Dependencia
         AgregarDependencia(){
-            this.axios.post('api/agregaDependencia', {codDependencia: this.codDependenciaAgregar, tipo: this.tipoAgregar, nomDependencia: this.nomDependenciaAgregar})
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.post('api/agregaDependencia', {codDependencia: this.codDependenciaAgregar, tipo: this.tipoAgregar, nomDependencia: this.nomDependenciaAgregar}, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
@@ -366,7 +386,12 @@ export default {
         EditarUbicacion(){
             this.$v.$touch()
             if(!this.$v.nomDependencia.$invalid && !this.$v.direccion.$invalid){
-                this.axios.post('api/agregaUbicacion', {comuna: this.comuna, direccion: this.direccion})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaUbicacion', {comuna: this.comuna, direccion: this.direccion}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         this.EditarDependencia();
@@ -393,7 +418,12 @@ export default {
         },
         //Luego de agregar la nueva ubicacion editamos los datos de la Dependencia
         EditarDependencia(){
-            this.axios.put(`api/editarDependencia/${this.codDependencia}`, {nomDependencia: this.nomDependencia, tipo: this.tipo})
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.put(`api/editarDependencia/${this.codDependencia}`, {nomDependencia: this.nomDependencia, tipo: this.tipo}, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     this.EliminarUbicacion();
@@ -412,7 +442,12 @@ export default {
         },
         //Ahora eliminamos la ubicacion que anteriormente estaba relacionada con esta dependencia
         EliminarUbicacion(){
-            this.axios.delete(`api/eliminarUbicacion/${this.corrUbicacion}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.delete(`api/eliminarUbicacion/${this.corrUbicacion}`, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
@@ -442,7 +477,12 @@ export default {
         //TABLAS DE HISTORIALES
         //CARGAR LOS DATOS DE LA TABLA HISTORIAL
         cargarHistorial(){
-            this.axios.get(`api/obtenerHistorialesDependencia/${this.codDependencia}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorialesDependencia/${this.codDependencia}`, config)
             .then(res => {
                 this.historial = res.data;
             })
@@ -452,7 +492,12 @@ export default {
         },
         //Cargar los detalles de un historial
         cargarDetalleHistorial(){
-            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorial/${this.histo}`, config)
             .then(res => {
                 this.detalleHist = res.data;
             })

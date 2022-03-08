@@ -20,7 +20,7 @@
                   <input type="password" id="typePasswordX-2" class="form-control form-control-lg" placeholder="Ingrese su contraseña" v-model="$v.password.$model"/>
                   <p class="text-danger" v-if="!$v.password.minLength">Mínimo de 6 caracteres</p>
                 </div>
-                <router-link to="/menu"><b-button variant="primary" class="btn btn-primary border-dark boton" type="submit">Iniciar Sesión</b-button></router-link>
+                <b-button @click="login()" variant="primary" class="btn btn-primary border-dark boton" type="submit">Iniciar Sesión</b-button>
               </div>
             </div>
           </div>
@@ -32,6 +32,7 @@
 
 <script>
 import { required, email, minLength } from "vuelidate/lib/validators"
+import { mapActions } from 'vuex';
 export default {
   name: 'inicio',
   data(){
@@ -46,6 +47,39 @@ export default {
     correo:{required,email},
     password:{required, minLength: minLength(6)}
   },
+  methods: {
+    ...mapActions(['guardarUsuario', 'leerToken']),
+    login(){
+      //Se revisa que se cumpla con los requerimientos y luego se busca al usuario en la base de datos
+      this.$v.$touch()
+      if(!this.$v.$invalid){
+        this.axios.post('/auth/login', {correo: this.correo, password: this.password})
+          .then(res => {
+            console.log(res.data)
+            const token = res.data.token;
+            this.guardarUsuario(token);
+          })
+          .catch(e => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: e.response.data.mensaje,
+              footer: 'Error al intentar Ingresar a su sesión'
+            })
+          })
+      }else{
+        Swal.fire({
+              icon: 'error',
+              title: 'Oops...',
+              text: 'Debe rellenar correctamente todos los campos',
+              footer: 'Asegurese de que el email y la contraseña sean validas'
+            })
+      }
+    }
+  },
+  created(){
+    this.leerToken();
+  }
 }
 </script>
 

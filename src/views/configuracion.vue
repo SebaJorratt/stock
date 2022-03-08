@@ -115,7 +115,7 @@ export default {
       this.cargarUsuario();
     },
     computed: {
-      //...mapState(['token'])
+      ...mapState(['token'])
     },
     methods: {
       alerta(color, texto){
@@ -134,10 +134,15 @@ export default {
       },
       //Función que edita a un usuario
       editarUsuario(){
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
         this.$v.$touch()
         if(!this.$v.nombre.$invalid && !this.$v.email.$invalid){
           if(this.contrasena === 'no'){
-            this.axios.put(`auth/actualizaUser`, {nomUsuario: this.nombre, correo: this.email})
+            this.axios.put(`auth/actualizaUser`, {nomUsuario: this.nombre, correo: this.email}, config)
               .then(res => {
                       Swal.fire(
                       'Se ha editado al usuario satisfactoriamente',
@@ -156,7 +161,7 @@ export default {
           }else{
             if(!this.$v.password.$invalid && !this.$v.newPassword.$invalid){
               if(!this.$v.newPasswordConfirm.$invalid){
-                this.axios.put(`auth/actualizaUser`, {nomUsuario: this.nombre, correo: this.email, password: this.password, newPassword: this.newPassword})
+                this.axios.put(`auth/actualizaUser`, {nomUsuario: this.nombre, correo: this.email, password: this.password, newPassword: this.newPassword}, config)
                   .then(res => {
                         Swal.fire(
                         'Se ha editado al usuario satisfactoriamente',
@@ -184,7 +189,12 @@ export default {
         }
       },
       cargarUsuario(){
-        this.axios.get('auth/obtenerDatos')
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
+        this.axios.get('auth/obtenerDatos', config)
           .then(res => {
             this.nombre = res.data[0].nomUsuario;
             this.email = res.data[0].correo;

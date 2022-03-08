@@ -94,6 +94,8 @@
 <script>
 import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
+
+import { mapState } from 'vuex'
 export default {
     name: "insumos",
     components: {
@@ -127,6 +129,9 @@ export default {
       //Validaciones de los input
       dependencia: {required}
     },
+    computed: {
+      ...mapState(['token', 'usuarioDB'])
+    },
     created(){
         this.cargarProductos(true);
         this.cargarDependencias();
@@ -135,7 +140,12 @@ export default {
     methods:{
         //Metodo que Carga todos los productos del sistema
         cargarProductos(primera){
-            this.axios.get('api/obtenerProductosSolos')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerProductosSolos', config)
             .then(res => {
                 this.prods = res.data;
                 if(primera){
@@ -150,7 +160,12 @@ export default {
         },
         //Función que se encargar de cargar las dependencias
         cargarDependencias(){
-            this.axios.get('api/obtenerDependencias')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerDependencias', config)
             .then(res => {
                 this.dependencias = res.data;
                 this.dependencia = this.dependencias[0].nomDependencia;
@@ -161,7 +176,12 @@ export default {
         },
         //Función que se encargar de cargar las dependencias
         cargarFuncionarios(){
-            this.axios.get('api/obtenerFuncionarios')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerFuncionarios', config)
             .then(res => {
                 this.funcionarios = res.data;
                 this.funcionario = this.funcionarios[0].nomFuncionario;
@@ -269,7 +289,12 @@ export default {
             }).then((result) => {
                 if (result.value) {
                     if(sumaStock > 0 && suma > 0 ){
-                        this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia})
+                        let config = {
+                            headers: {
+                                token: this.token
+                            }
+                        }
+                        this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             this.HistorialProducto();
@@ -303,7 +328,12 @@ export default {
         HistorialProducto(){
             for(var i = 0; i<this.productos.length; i++){
                 if(this.productos[i].cantidad > 0){
-                    this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra})
+                    let config = {
+                        headers: {
+                            token: this.token
+                        }
+                    }
+                    this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             Swal.fire(
@@ -335,7 +365,12 @@ export default {
         restarStock(){
             for(var i = 0; i<this.productos.length; i++){
                 if(this.productos[i].cantidad > 0){
-                    this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad})
+                    let config = {
+                        headers: {
+                            token: this.token
+                        }
+                    }
+                    this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad}, config)
                         .then(res => {
                             this.actualizarStock();
                         })
@@ -361,7 +396,12 @@ export default {
         },
         //Permite ver los detalles de un producto y los carga
         detalles(id){
-            this.axios.get(`api/obtenerProducto/${id}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProducto/${id}`, config)
                 .then(res => {
                     this.codigo = res.data[0].codigoBarra;
                     this.producto = res.data[0].nomProducto;

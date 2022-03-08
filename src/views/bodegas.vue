@@ -233,6 +233,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "datatables.net-dt/js/dataTables.dataTables"
 import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
+
+import { mapState } from 'vuex'
 export default {
     name: "about",
     components: {
@@ -276,6 +278,9 @@ export default {
         proveedor:{required},
         nuevaOrden:{required},
     },
+    computed: {
+      ...mapState(['token', 'usuarioDB'])
+    },
     created(){
         this.cargarBodegas();
     },
@@ -283,7 +288,12 @@ export default {
         //METODOS PARA GENERAR LAS ORDENES DE COMPRA
         //Metodo que Carga todos los productos del sistema
         cargarProductos(primera){
-            this.axios.get(`api/obtenerProductosBodega/${this.bodegaCrear}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProductosBodega/${this.bodegaCrear}`, config)
             .then(res => {
                 this.prods = res.data;
                 if(primera){
@@ -299,7 +309,12 @@ export default {
         },
         //Función que carga los productos de una bodega para trasferir productos a Dirección Regional
         cargarProductosBodega(){
-            this.axios.get(`api/obtenerProductosBodega/${this.nomBodega}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProductosBodega/${this.nomBodega}`, config)
             .then(res => {
                 for(var i = 0; i<res.data.length; i++){
                     this.enviar.push({codigoBarra: res.data[i].codigoBarra, nomProducto: res.data[i].nomProducto, stock: res.data[i].stock, stockBodega: res.data[i].stockBodega, cantidad: 1, stockCritico: res.data[i].stockCritico})
@@ -407,7 +422,12 @@ export default {
         },
         //Permite ver los detalles de un producto y los carga
         detalles(id){
-            this.axios.get(`api/obtenerProducto/${id}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProducto/${id}`, config)
                 .then(res => {
                     this.codigo = res.data[0].codigoBarra;
                     this.producto = res.data[0].nomProducto;
@@ -451,7 +471,12 @@ export default {
                 }).then((result) => {
                     if (result.value) {
                         if(sumaStockBodega > 0 && suma > 0){
-                            this.axios.post('api/agregaOrdenEntrega', {codOrden: this.nuevaOrden, proveedor: this.proveedor, fecha: dt, nomBodega: this.bodegaCrear})
+                            let config = {
+                                headers: {
+                                    token: this.token
+                                }
+                            }
+                            this.axios.post('api/agregaOrdenEntrega', {codOrden: this.nuevaOrden, proveedor: this.proveedor, fecha: dt, nomBodega: this.bodegaCrear}, config)
                             .then(res => {
                             if(!res.data.sqlMessage){
                                 this.ORDENProducto();
@@ -488,7 +513,12 @@ export default {
         ORDENProducto(){
             for(var i = 0; i<this.productos.length; i++){
                 if(this.productos[i].cantidad > 0){
-                    this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra})
+                    let config = {
+                        headers: {
+                            token: this.token
+                        }
+                    }
+                    this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             Swal.fire(
@@ -521,7 +551,12 @@ export default {
         sumaStock(){
             for(var i = 0; i<this.productos.length; i++){
                 if(this.productos[i].cantidad > 0){
-                    this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear})
+                    let config = {
+                        headers: {
+                            token: this.token
+                        }
+                    }
+                    this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear}, config)
                         .then(res => {
                             this.actualizarStock();
                         })
@@ -547,7 +582,12 @@ export default {
         },
         //Función para cargar las bodegas del sistema
         cargarBodegas(){
-            this.axios.get('api/obtenerbodegas')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerbodegas', config)
             .then(res => {
                 this.bodegas = res.data;
                 this.bodegaCrear = res.data[0].nomBodega
@@ -610,7 +650,12 @@ export default {
         agregaBodega(){
             this.$v.$touch()
             if(!this.$v.nuevaBodega.$invalid){
-                this.axios.post('api/agregaBodega', {nomBodega: this.nuevaBodega})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaBodega', {nomBodega: this.nuevaBodega}, config)
                     .then(res => {
                         if(!res.data.sqlMessage){
                             this.bodegas.push({nomBodega: this.nuevaBodega})
@@ -642,7 +687,12 @@ export default {
         },
         //TABLA DE ORDENES QUE POSEE UNA BODEGA
         cargarOrdenes(){
-            this.axios.get(`api/obtenerOrdenesBodega/${this.nomBodega}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerOrdenesBodega/${this.nomBodega}`, config)
             .then(res => {
                 this.ordenes = res.data;
             })
@@ -652,7 +702,12 @@ export default {
         },
         //Cargar los detalles de una orden
         cargarDetalleOrden(){
-            this.axios.get(`api/obtenerOrden/${this.histo}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerOrden/${this.histo}`, config)
             .then(res => {
                 this.detalleOrden = res.data;
             })
@@ -672,7 +727,12 @@ export default {
                 confirmButtonText: '¡Si!'
             }).then((result) => {
                 if (result.value) {
-                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: cantidad, nomBodega: this.nomBodega})
+                    let config = {
+                        headers: {
+                            token: this.token
+                        }
+                    }
+                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: cantidad, nomBodega: this.nomBodega}, config)
                             .then(res => {
                                 this.recibirDireccion(codigoBarra, cantidad);
                             })
@@ -690,7 +750,12 @@ export default {
         },
         //Función que permite actualizar el stock de un producto en la dirección Regional
         recibirDireccion(codigoBarra, cantidad){
-            this.axios.put(`api/actualizaStockmas/${codigoBarra}`, {cantidad: cantidad})
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.put(`api/actualizaStockmas/${codigoBarra}`, {cantidad: cantidad}, config)
                     .then(res => {
                         Swal.fire(
                             'Se ha realizado un traspaso de stock a Dirección Regional',

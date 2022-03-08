@@ -18,12 +18,12 @@
                             <b-nav-form>
                                 <div class="dropdown">
                                 <button class="btn dropdown-toggle" type="button dark" style="border-color: black;" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false">
-                                    Nombre
+                                    {{nombre}}
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton1">
                                     <li><router-link to="/configuracion"><a class="dropdown-item" href="#">Ver perfil</a></router-link></li>
-                                    <li><router-link to="/agregaUsuario"><a class="dropdown-item" href="#" >Gestión de Usuarios</a></router-link></li>
-                                    <li><a class="dropdown-item" href="#">Cerrar sesión</a></li>
+                                    <li v-if="activo"><router-link to="/agregaUsuario"><a class="dropdown-item" href="#" >Gestión de Usuarios</a></router-link></li>
+                                    <li><a @click="cerrarSesion()" class="dropdown-item" href="#">Cerrar sesión</a></li>
                                 </ul>
                                 </div>
                             </b-nav-form>
@@ -36,8 +36,41 @@
 </template>
 
 <script>
+import { mapActions, mapState, mapGetters } from 'vuex'
 export default {
-  name: 'navbar',
+    name: 'navbar',
+    methods:{
+        ...mapActions(['cerrarSesion']),
+        cargarUsuario(){
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
+        this.axios.get('auth/obtenerDatos', config)
+          .then(res => {
+            this.nombre = res.data[0].nomUsuario;
+          })
+        },
+        verificar(){
+            if(this.usuarioDB.data[0].tipoUsuario == 0){
+                this.activo = false;
+            }
+        }
+    },
+    computed: {
+      ...mapState(['token', 'usuarioDB']),
+    },
+    created(){
+      this.cargarUsuario();
+      this.verificar();
+    },
+    data() {
+      return {
+        nombre: '',
+        activo: true
+      }
+    }
 }
 </script>
 

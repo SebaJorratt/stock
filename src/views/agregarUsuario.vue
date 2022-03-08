@@ -213,14 +213,14 @@ export default {
       newPassword:{minLength: minLength(6), required}
     },
     computed: {
-      //...mapState(['token'])
+      ...mapState(['token'])
     },
     created(){
       this.listarUsuarios();
       this.admin();
     },
     methods: {
-      //...mapActions(['admin']),
+      ...mapActions(['admin']),
       alerta(color, texto){
         this.mensaje.color = color;
         this.mensaje.texto = texto;
@@ -242,7 +242,12 @@ export default {
         }
       },
       listarUsuarios(){
-        this.axios.get('auth/obtenerUsuarios')
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
+        this.axios.get('auth/obtenerUsuarios', config)
           .then(res => {
             this.usuarios = res.data;
           })
@@ -257,9 +262,14 @@ export default {
       }, 
       //Función que permite ingresar a un nuevo usuario por parte de un Administrador
       agregarUsuario(){
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
         this.$v.$touch()
         if(!this.$v.nombreAgrega.$invalid && !this.$v.emailAgrega.$invalid && !this.$v.passwordAgrega.$invalid && !this.$v.passwordConfirm.$invalid){
-          this.axios.post('auth/register', {nomUsuario: this.nombreAgrega, correo: this.emailAgrega, password: this.passwordAgrega, tipo: this.tipo})
+          this.axios.post('auth/register', {nomUsuario: this.nombreAgrega, correo: this.emailAgrega, password: this.passwordAgrega, tipo: this.tipo}, config)
             .then(res => {
               Swal.fire(
                 'Se ha generado un nuevo usuario',
@@ -281,7 +291,12 @@ export default {
       },
       //Carga los datos de un usuario a editar
       cargarUsuario(){
-        this.axios.get(`auth/obtenUsuario/${this.corr}`)
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
+        this.axios.get(`auth/obtenUsuario/${this.corr}`, config)
           .then(res => {
             this.nombre = res.data[0].nomUsuario;
             this.email = res.data[0].correo;
@@ -292,10 +307,15 @@ export default {
       },
       //Función que edita a un usuario
       editarUsuario(){
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
         this.$v.$touch()
         if(!this.$v.nombre.$invalid && !this.$v.email.$invalid){
           if(this.contrasena === 'no'){
-            this.axios.put(`auth/actualizaUsuario/${this.corr}`, {nomUsuario: this.nombre, correo: this.email})
+            this.axios.put(`auth/actualizaUsuario/${this.corr}`, {nomUsuario: this.nombre, correo: this.email}, config)
               .then(res => {
                       Swal.fire(
                       'Se ha editado al usuario satisfactoriamente',
@@ -339,7 +359,12 @@ export default {
       },
       //Función que permite eliminar a un usuario del sistema
       Eliminar(id){
-        this.axios.delete(`auth/eliminaUsuario/${id}`)
+        let config = {
+          headers: {
+            token: this.token
+          }
+        }
+        this.axios.delete(`auth/eliminaUsuario/${id}`, config)
           .then(res => {
             const index = this.usuarios.findIndex(item => item.corrUsuario == id);
             this.usuarios.splice(index, 1)

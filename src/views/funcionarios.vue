@@ -193,11 +193,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import "datatables.net-dt/js/dataTables.dataTables"
 import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
+
+import { mapState } from 'vuex'
 export default {
     name: "about",
     components: {
         navbar,
     },
+    
     data() {
       return {
         //Datos para agregar un nuevo memo (historial) con v-model
@@ -236,6 +239,9 @@ export default {
         correo:{required, email},
         rut:{required},
     },
+    computed: {
+      ...mapState(['token', 'usuarioDB'])
+    },
     created(){
         this.cargarFuncionarios();
         this.cargarDependencias();
@@ -243,7 +249,12 @@ export default {
     methods:{
         //Función para cargar los Funcionarios del sistema
         cargarFuncionarios(){
-            this.axios.get('api/obtenerFuncionarios')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerFuncionarios', config)
             .then(res => {
                 this.funcionarios = res.data;
             })
@@ -253,7 +264,12 @@ export default {
         },
         //Función que se encargar de cargar las dependencias
         cargarDependencias(){
-            this.axios.get('api/obtenerDependencias')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerDependencias', config)
             .then(res => {
                 this.dependencias = res.data;
                 this.dependenciaAgregar = this.dependencias[0].nomDependencia;
@@ -303,7 +319,12 @@ export default {
         AgregarFuncionario(){
             this.$v.$touch()
             if(!this.$v.codFuncionarioAgregar.$invalid && !this.$v.nomFuncionarioAgregar.$invalid && !this.$v.correoAgregar.$invalid && !this.$v.rutAgregar.$invalid){
-                this.axios.post('api/agregaFuncionario', {codFuncionario: this.codFuncionarioAgregar, nomFuncionario: this.nomFuncionarioAgregar, correo: this.correoAgregar, rut: this.rutAgregar, nomDependencia: this.dependenciaAgregar})
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.post('api/agregaFuncionario', {codFuncionario: this.codFuncionarioAgregar, nomFuncionario: this.nomFuncionarioAgregar, correo: this.correoAgregar, rut: this.rutAgregar, nomDependencia: this.dependenciaAgregar}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         Swal.fire(
@@ -343,7 +364,12 @@ export default {
         },
         //Función que permite editar un Funcionario
         EditarFuncionario(){
-            this.axios.put(`api/editarFuncionario/${this.codFuncionario}`, {nomFuncionario: this.nomFuncionario, correo: this.correo, rut: this.rut, nomDependencia: this.dependencia})
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.put(`api/editarFuncionario/${this.codFuncionario}`, {nomFuncionario: this.nomFuncionario, correo: this.correo, rut: this.rut, nomDependencia: this.dependencia}, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(
@@ -367,7 +393,12 @@ export default {
         //TABLAS DE HISTORIALES
         //CARGAR LOS DATOS DE LA TABLA HISTORIAL
         cargarHistorial(){
-            this.axios.get(`api/obtenerHistorialesFuncionario/${this.codFuncionario}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorialesFuncionario/${this.codFuncionario}`, config)
             .then(res => {
                 this.historial = res.data;
             })
@@ -377,7 +408,12 @@ export default {
         },
         //Cargar los detalles de un historial
         cargarDetalleHistorial(){
-            this.axios.get(`api/obtenerHistorial/${this.histo}`)
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerHistorial/${this.histo}`, config)
             .then(res => {
                 this.detalleHist = res.data;
             })
