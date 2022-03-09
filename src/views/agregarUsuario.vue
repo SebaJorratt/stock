@@ -364,24 +364,36 @@ export default {
             token: this.token
           }
         }
-        this.axios.delete(`auth/eliminaUsuario/${id}`, config)
-          .then(res => {
-            const index = this.usuarios.findIndex(item => item.corrUsuario == id);
-            this.usuarios.splice(index, 1)
-            Swal.fire(
-              'Se ha eliminado al usuario satisfactoriamente',
-              'Seleccione Ok para continuar',
-              'success'
-            )
-          })
-          .catch(e => {
-            Swal.fire({
-              icon: 'error',
-              title: 'Oops...',
-              text: e.response.mensaje,
-              footer: 'Error al intentar Ingresar a su seción'
+        swal.fire({
+                title: '¿Seguro que desea eliminar a este usuario?',
+                type: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#3085d6',
+                cancelButtonColor: '#d33',
+                cancelButtonText: 'Cancelar',
+                confirmButtonText: '¡Si!'
+            }).then((result) => {
+                if (result.value) {
+                  this.axios.delete(`auth/eliminaUsuario/${id}`, config)
+                    .then(res => {
+                      const index = this.usuarios.findIndex(item => item.corrUsuario == id);
+                      this.usuarios.splice(index, 1)
+                      Swal.fire(
+                        'Se ha eliminado al usuario satisfactoriamente',
+                        'Seleccione Ok para continuar',
+                        'success'
+                      )
+                    })
+                    .catch(e => {
+                      Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: e.response.mensaje,
+                        footer: 'Error al intentar Ingresar a su seción'
+                      })
+                    })
+                  }
             })
-          })
       },
       //Se reinicia la ruta para regresar a la pantalla Principal
       Volver(){

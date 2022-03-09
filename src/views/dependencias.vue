@@ -127,7 +127,7 @@
                                 <b-button @click="Volver()" class="btn btn-sm boton">Volver al listado</b-button>
                             </b-col>
                             <b-col cols="12" md="6">
-                                <b-button @click="EditarUbicacion()" class="btn-success btn-sm boton">Agregar Dependencia</b-button>
+                                <b-button @click="EditarUbicacion()" class="btn-success btn-sm boton">Editar Dependencia</b-button>
                             </b-col>
                         </b-row>
                     </div>
@@ -211,7 +211,7 @@ export default {
         detalleHist: [],
         comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
                 'Punitaqui', 'Río Hurtado'],
-        tipos: ['Tipo de Prueba', 'Malo'],
+        tipos: ['MDS', 'Alternativo', 'Otro Tipo'],
         //Variables del AGREGAR
         codDependenciaAgregar: '',
         nomDependenciaAgregar: '',

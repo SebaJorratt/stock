@@ -279,7 +279,7 @@ export default {
                 suma = suma + this.productos[i].cantidad
             }
             swal.fire({
-            title: '¿Seguro que desea realizar la entregsa de Insumos ' + this.dueño + '?',
+            title: '¿Seguro que desea realizar la entrega de Insumos?',
             type: 'warning',
             showCancelButton: true,
             confirmButtonColor: '#3085d6',

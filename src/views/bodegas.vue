@@ -417,7 +417,7 @@ export default {
                 this.enviar[index].cantidad = 0;
             }
             if(this.enviar[index].stockBodega - parseInt(this.enviar[index].cantidad) < this.enviar[index].stockCritico){
-                this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.enviar[index].nomProducto + '" es inferior al stock crítico ingrese mas cantidad para cumplir con el stock Crítico')
+                this.alerta('danger', 'Si realiza esta acción el stock en bodega del producto "' + this.enviar[index].nomProducto + '" sera inferior al stock crítico')
             }
         },
         //Permite ver los detalles de un producto y los carga
@@ -572,7 +572,7 @@ export default {
                 }
             }
         },
-        //Actualiza la pagina tras generar una entrega de insumos
+        //Actualiza la pagina tras generar una orden de compra
         actualizarStock(){
             for(var i = 0; i<this.productos.length-1; i++){
                 this.cantidadProductos--;
@@ -732,7 +732,7 @@ export default {
                             token: this.token
                         }
                     }
-                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: cantidad, nomBodega: this.nomBodega}, config)
+                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: parseInt(cantidad), nomBodega: this.nomBodega}, config)
                             .then(res => {
                                 this.recibirDireccion(codigoBarra, cantidad);
                             })
@@ -777,8 +777,8 @@ export default {
         //Función que actualiza los stock en la vista de la página
         actualizarStocksProductoBodega(codigoBarra, cantidad){
             const index = this.enviar.findIndex(item => item.codigoBarra == codigoBarra);
-            this.enviar[index].stockBodega = this.enviar[index].stockBodega - cantidad
-            this.enviar[index].stock = this.enviar[index].stock + cantidad
+            this.enviar[index].stockBodega = this.enviar[index].stockBodega - parseInt(cantidad)
+            this.enviar[index].stock = this.enviar[index].stock + parseInt(cantidad)
         },
         //Funciones de las alertas
         countDownChanged(dismissCountDown) {
