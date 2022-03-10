@@ -83,26 +83,30 @@
                             </b-col>
                         </b-row>
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
+                                <label for="exampleInputEmail1" class="form-label">Codigo de Barra</label>
+                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.nomProducto)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
+                            </b-col>
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
                                 <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
                                     <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="2">
-                                <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
+                            <b-col cols="12" md="1">
+                                <label for="exampleInputEmail1" class="form-label">Cantidad</label>
                                 <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                             </b-col>
                             <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Stock en Bodega</label>
                                 <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
                             </b-col>
-                            <b-col cols="12" md="2">
-                                <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
+                            <b-col cols="12" md="1">
+                                <label for="exampleInputEmail1" class="form-label">Critico</label>
                                 <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stockCritico">
                             </b-col>
                             <b-col cols="12" md="2">
-                                <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
+                                <b-button @click="detalles(i.codBar)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
                             </b-col>
                         </b-row>
                         <b-row>
@@ -115,28 +119,28 @@
                         </b-row>
                     </div>
                 </div>
-                <b-modal id="modal-1" title="Detalles del Producto">
-                <div class="card-body">
-                    <b-row class="mt-2">
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
-                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
-                        </b-col>
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Nombre</label>
-                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
-                        </b-col>
-                        <b-col cols="12" md="4">
-                            <label for="exampleInputEmail1" class="form-label">Marca</label>
-                            <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
-                        </b-col>
-                    </b-row>
-                    <b-row class="mt-4">
-                        <b-col cols="12" md="12">
-                            <label for="exampleInputEmail1" class="form-label">Descripcion</label>
-                            <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
-                        </b-col>
-                    </b-row>
+                <b-modal id="modal-1" size="lg" title="Detalles del Producto">
+                    <div class="card-body">
+                        <b-row class="mt-2">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="codigo">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Nombre</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="producto">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Marca</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="marca">
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-4">
+                            <b-col cols="12" md="12">
+                                <label for="exampleInputEmail1" class="form-label">Descripcion</label>
+                                <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
+                            </b-col>
+                        </b-row>
                     </div>
                 </b-modal>
 
@@ -215,7 +219,7 @@
                       <td>{{i.stockBodega}}</td>
                       <td><input type="number" @change="cantMinBodega(i.codigoBarra)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad"></td>
                       <td>{{i.stockCritico}}</td>
-                      <td><b-button @click="EnviarDireccion(i.codigoBarra, i.cantidad)" class="btn-success btn-sm" style="border-color: white;">Enviar</b-button></td>
+                      <td><b-button @click="EnviarDireccion(i.codigoBarra, i.cantidad, i.stockBodega)" class="btn-success btn-sm" style="border-color: white;">Enviar</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -258,7 +262,7 @@ export default {
         proveedor: '',
         nuevaOrden: '',
         cantidadProductos: 1,
-        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, stockCritico: 0, codigoBarra: ''}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, stockCritico: 0, codigoBarra: '', codBar: ''}],
         prods: [],
         productoAnt: '',
         //VARIABLES DE DETALLES
@@ -301,6 +305,12 @@ export default {
                     this.productos[0].stock = this.prods[0].stockBodega
                     this.productos[0].stockCritico = this.prods[0].stockCritico
                     this.productos[0].codigoBarra = this.prods[0].codigoBarra
+                    this.productos[0].codBar = this.prods[0].codigoBarra
+                    if(this.productos[0].stock < this.productos[0].stockCritico){
+                        if(this.productos[0].stock === 0){
+                            this.alerta('danger', 'No hay stock disponible en bodega para el producto ' + this.productos[0].nomProducto)
+                        }
+                    }
                 }
             })
             .catch(e => {
@@ -331,6 +341,16 @@ export default {
             }
             this.cargarProductos(true)
         },
+        buscarPorCodigo(codigoBarra, key, nomProducto){
+            this.anterior(nomProducto)
+            const indexActual = this.productos.findIndex(item => item.key == key);
+            const posProd = this.prods.findIndex(item => item.codigoBarra == codigoBarra)
+            if(posProd !== -1){
+                this.cambioProducto(this.prods[posProd].nomProducto, key)
+            }else{
+                this.productos[indexActual].nomProducto = this.productoAnt
+            }
+        },
         //Función que te permite guardar el valor anterior del select
         anterior(nomProducto){
             this.productoAnt = nomProducto
@@ -341,7 +361,7 @@ export default {
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
                 if(i != indexActual){
-                    if(this.productos[i].nomProducto === this.productos[indexActual].nomProducto){
+                    if(this.productos[i].nomProducto === nomProducto){
                         repetido = true;
                     }
                 }
@@ -351,11 +371,16 @@ export default {
                 const index2 = this.productos.findIndex(item => item.key == key);
                 this.productos[index2].stock = this.prods[index].stockBodega
                 this.productos[index2].stockCritico = this.prods[index].stockCritico
+                this.productos[index2].nomProducto = this.prods[index].nomProducto;
                 this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                this.productos[index2].codBar = this.prods[index].codigoBarra
                 if(this.productos[index2].cantidad > this.productos[index2].stock){
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
                 if(this.productos[index2].stock + this.productos[index2].cantidad < this.productos[index2].stockCritico){
+                    if(this.productos[index2].stock){
+                        this.alerta('danger', 'El existe stock en bodega para el producto ' + this.productos[index2].nomProducto)
+                    }
                     this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[index2].nomProducto + '" es inferior al stock crítico')
                 }
             }else{
@@ -377,6 +402,7 @@ export default {
                     this.productos[this.productos.length-1].stock = this.prods[a].stockBodega
                     this.productos[this.productos.length-1].stockCritico = this.prods[a].stockCritico
                     this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].codBar = this.prods[a].codigoBarra
                     this.productos[this.productos.length-1].key = this.cantidadProductos
                     break;
                 }
@@ -403,7 +429,7 @@ export default {
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
         cantMin(producto){
             const index = this.productos.findIndex(item => item.key == producto);
-            if(this.productos[index].cantidad < 0){
+            if(this.productos[index].cantidad < 0 || this.productos[index].cantidad == ''){
                 this.productos[index].cantidad = 0;
             }
             if(this.productos[index].stock + parseInt(this.productos[index].cantidad) < this.productos[index].stockCritico){
@@ -518,7 +544,7 @@ export default {
                             token: this.token
                         }
                     }
-                    this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codigoBarra}, config)
+                    this.axios.post('api/agregaOrdenProducto', {cantidad: this.productos[i].cantidad, codOrden: this.nuevaOrden, codigoBarra: this.productos[i].codBar}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             Swal.fire(
@@ -556,7 +582,7 @@ export default {
                             token: this.token
                         }
                     }
-                    this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear}, config)
+                    this.axios.put(`api/actualizaStockBodegamas/${this.productos[i].codBar}`, {cantidad: this.productos[i].cantidad, nomBodega: this.bodegaCrear}, config)
                         .then(res => {
                             this.actualizarStock();
                         })
@@ -716,37 +742,41 @@ export default {
             })
         },
         //Función que envia un stock desde bodega a Dirección Regional
-        EnviarDireccion(codigoBarra, cantidad){
-            swal.fire({
-                title: '¿Seguro que desea enviar el stock de la bodega con una cantidad de "' + cantidad + '" a dirección regional para el producto de codigo: "' + codigoBarra + '"?',
-                type: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#3085d6',
-                cancelButtonColor: '#d33',
-                cancelButtonText: 'Cancelar',
-                confirmButtonText: '¡Si!'
-            }).then((result) => {
-                if (result.value) {
-                    let config = {
-                        headers: {
-                            token: this.token
+        EnviarDireccion(codigoBarra, cantidad, stockBodega){
+            if(stockBodega > 0){
+                swal.fire({
+                    title: '¿Seguro que desea enviar el stock de la bodega con una cantidad de "' + cantidad + '" a dirección regional para el producto de codigo: "' + codigoBarra + '"?',
+                    type: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    cancelButtonText: 'Cancelar',
+                    confirmButtonText: '¡Si!'
+                }).then((result) => {
+                    if (result.value) {
+                        let config = {
+                            headers: {
+                                token: this.token
+                            }
                         }
-                    }
-                    this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: parseInt(cantidad), nomBodega: this.nomBodega}, config)
-                            .then(res => {
-                                this.recibirDireccion(codigoBarra, cantidad);
-                            })
-                            .catch(e => {
-                                var mensaje = 'Posible error del sistema';
-                                Swal.fire({
-                                icon: 'error',
-                                title: 'Oops...',
-                                text: 'No se ha logrado traspasar los stocks',
-                                footer: mensaje
+                        this.axios.put(`api/actualizaStockBodega/${codigoBarra}`, {cantidad: parseInt(cantidad), nomBodega: this.nomBodega}, config)
+                                .then(res => {
+                                    this.recibirDireccion(codigoBarra, cantidad);
                                 })
-                            })
-                }
-            })
+                                .catch(e => {
+                                    var mensaje = 'Posible error del sistema';
+                                    Swal.fire({
+                                    icon: 'error',
+                                    title: 'Oops...',
+                                    text: 'No se ha logrado traspasar los stocks',
+                                    footer: mensaje
+                                    })
+                                })
+                    }
+                })
+            }else{
+                this.alerta('danger', 'El stock actual para este producto en la bodega es 0')
+            }
         },
         //Función que permite actualizar el stock de un producto en la dirección Regional
         recibirDireccion(codigoBarra, cantidad){

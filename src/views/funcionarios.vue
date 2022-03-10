@@ -69,12 +69,20 @@
                             </b-col>
                         </b-row>
                         <b-row class="mt-4">
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Correo del Funcionario</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.correoAgregar.$model">
                                 <p class="text-danger" v-if="$v.correoAgregar.$error">El correo del Funcionario es Requerido</p>
                             </b-col>
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Encargado de Dependencia</label>
+                                <select class="form-control" v-model="encargadoAgregar">
+                                <option disabled value="">Tipo de funcionario</option>
+                                    <option value="1">Encargado</option>
+                                    <option value="0">Normal</option>
+                                </select>
+                            </b-col>
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Rut del Funcionario</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.rutAgregar.$model">
                                 <p class="text-danger" v-if="$v.rutAgregar.$error">El rut del Funcionario es Requerido</p>
@@ -109,12 +117,20 @@
                             </b-col>
                         </b-row>
                         <b-row class="mt-4">
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Correo del Funcionario</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.correo.$model">
                                 <p class="text-danger" v-if="$v.correo.$error">El correo del Funcionario es Requerido</p>
                             </b-col>
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Encargado de Dependencia</label>
+                                <select class="form-control" v-model="encargado">
+                                <option disabled value="">Tipo de funcionario</option>
+                                    <option value="1">Encargado</option>
+                                    <option value="0">Normal</option>
+                                </select>
+                            </b-col>
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Rut del Funcionario</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.rut.$model">
                                 <p class="text-danger" v-if="$v.rut.$error">El rut del Funcionario es Requerido</p>
@@ -215,6 +231,7 @@ export default {
         dependenciaAgregar: '',
         correoAgregar: '',
         rutAgregar: '',
+        encargadoAgregar: 0,
         //Variable para reconocer un producto
         codFuncionario: '',
         histo: '',
@@ -223,6 +240,7 @@ export default {
         dependencia: '',
         correo: '',
         rut: '',
+        encargado: 0,
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
@@ -324,7 +342,7 @@ export default {
                         token: this.token
                     }
                 }
-                this.axios.post('api/agregaFuncionario', {codFuncionario: this.codFuncionarioAgregar, nomFuncionario: this.nomFuncionarioAgregar, correo: this.correoAgregar, rut: this.rutAgregar, nomDependencia: this.dependenciaAgregar}, config)
+                this.axios.post('api/agregaFuncionario', {codFuncionario: this.codFuncionarioAgregar, nomFuncionario: this.nomFuncionarioAgregar, correo: this.correoAgregar, rut: this.rutAgregar, encargado: this.encargadoAgregar ,nomDependencia: this.dependenciaAgregar}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         Swal.fire(
@@ -361,6 +379,7 @@ export default {
             this.dependencia = data.nomDependencia
             this.correo = data.correo
             this.rut = data.rut
+            this.encargado = data.encargado
         },
         //Función que permite editar un Funcionario
         EditarFuncionario(){
@@ -369,7 +388,7 @@ export default {
                     token: this.token
                 }
             }
-            this.axios.put(`api/editarFuncionario/${this.codFuncionario}`, {nomFuncionario: this.nomFuncionario, correo: this.correo, rut: this.rut, nomDependencia: this.dependencia}, config)
+            this.axios.put(`api/editarFuncionario/${this.codFuncionario}`, {nomFuncionario: this.nomFuncionario, correo: this.correo, rut: this.rut, encargado: this.encargado, nomDependencia: this.dependencia}, config)
                 .then(res => {
                 if(!res.data.sqlMessage){
                     Swal.fire(

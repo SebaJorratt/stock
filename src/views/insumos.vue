@@ -21,7 +21,7 @@
                         <b-row class="mt-2">
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
-                                <select class="form-control" v-model="$v.dependencia.$model">
+                                <select class="form-control" @change="cambiaDep()" v-model="$v.dependencia.$model">
                                     <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
@@ -39,30 +39,57 @@
                             </b-col>
                         </b-row>
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
+                                <label for="exampleInputEmail1" class="form-label">Codigo de Barra</label>
+                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.nomProducto)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
+                            </b-col>
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
                                 <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
                                     <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="3">
+                            <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
                                 <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                             </b-col>
-                            <b-col cols="12" md="3">
+                            <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
                                 <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
                             </b-col>
                             <b-col cols="12" md="2">
-                                <b-button @click="detalles(i.codigoBarra)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
+                                <b-button @click="detalles(i.codBar)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
+                            </b-col>
+                        </b-row>
+                        <b-row>
+                            <b-button v-b-modal.modal-2 class="btn-success btn boton mt-5">Generar Informe</b-button>
+                        </b-row>
+                    </div>
+                </div>
+                <b-modal id="modal-2" size="lg" class="modal-lg" title="Preview del MEMO N° ">
+                    <div class="card-body">
+                        <b-row class="mt-2" v-for="i in productos" :key="i.key">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Nombre del Producto</label>
+                                <select disabled class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                </select>
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
+                                <input disabled type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Marca del Producto</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="i.marca">
                             </b-col>
                         </b-row>
                         <b-row>
                             <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar Informe</b-button>
                         </b-row>
                     </div>
-                </div>
-                <b-modal id="modal-1" title="Detalles del Producto">
+                </b-modal>
+                <b-modal id="modal-1" size="lg" title="Detalles del Producto">
                     <div class="card-body">
                             <b-row class="mt-2">
                                 <b-col cols="12" md="4">
@@ -96,6 +123,16 @@ import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
 
 import { mapState } from 'vuex'
+
+//IMPORTACIÓN PARA DOCX TEMPLATE
+import Docxtemplater from "docxtemplater";
+import PizZip from "pizzip";
+import PizZipUtils from "pizzip/utils/index.js";
+import { saveAs } from "file-saver";
+
+function loadFile(url, callback) {
+    PizZipUtils.getBinaryContent(url, callback);
+}
 export default {
     name: "insumos",
     components: {
@@ -105,7 +142,7 @@ export default {
       return {
         //Datos para agregar un nuevo memo (historial) con v-model
         cantidadProductos: 1,
-        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: ''}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: ''}],
         prods: [],
         productoAnt: '',
         //Variable para las dependencias 
@@ -123,6 +160,7 @@ export default {
         producto: '',
         marca: '',
         descripcion: '',
+        memo: 1,
       }
     },
     validations:{
@@ -135,7 +173,6 @@ export default {
     created(){
         this.cargarProductos(true);
         this.cargarDependencias();
-        this.cargarFuncionarios();
     },
     methods:{
         //Metodo que Carga todos los productos del sistema
@@ -152,6 +189,11 @@ export default {
                     this.productos[0].nomProducto = this.prods[0].nomProducto
                     this.productos[0].stock = this.prods[0].stock
                     this.productos[0].codigoBarra = this.prods[0].codigoBarra
+                    this.productos[0].codBar = this.prods[0].codigoBarra
+                    this.productos[0].marca = this.prods[0].marca
+                    if(this.productos[0].stock === 0){
+                        this.alerta('danger', 'No se encuentra stock del producto ' + this.productos[0].nomProducto)
+                    }
                 }
             })
             .catch(e => {
@@ -169,19 +211,24 @@ export default {
             .then(res => {
                 this.dependencias = res.data;
                 this.dependencia = this.dependencias[0].nomDependencia;
+                this.cargarFuncionarios();
             })
             .catch(e => {
                 this.alerta('danger', 'No se han podido cargar las Dependencias');
             })
         },
-        //Función que se encargar de cargar las dependencias
+        //Función que carga los funcionarios al cambiar la dependencia
+        cambiaDep(){
+            this.cargarFuncionarios();
+        },
+        //Función que se encarga de cargar a los funcionarios encargados de la dependencia indicada
         cargarFuncionarios(){
             let config = {
                 headers: {
                     token: this.token
                 }
             }
-            this.axios.get('api/obtenerFuncionarios', config)
+            this.axios.get(`api/obtenerFuncionarioDep/${this.dependencia}`, config)
             .then(res => {
                 this.funcionarios = res.data;
                 this.funcionario = this.funcionarios[0].nomFuncionario;
@@ -190,17 +237,28 @@ export default {
                 this.alerta('danger', 'No se han podido cargar los Funcionarios');
             })
         },
+        buscarPorCodigo(codigoBarra, key, nomProducto){
+            this.anterior(nomProducto)
+            const indexActual = this.productos.findIndex(item => item.key == key);
+            const posProd = this.prods.findIndex(item => item.codigoBarra == codigoBarra)
+            if(posProd !== -1){
+                this.cambioProducto(this.prods[posProd].nomProducto, key)
+            }else{
+                this.productos[indexActual].nomProducto = this.productoAnt
+            }
+        },
         //Función que te permite guardar el valor anterior del select
         anterior(nomProducto){
             this.productoAnt = nomProducto
         },
         //Si se cambia un producto se debe buscar su stock
         cambioProducto(nomProducto, key){
+            console.log(nomProducto, this.productoAnt)
             const indexActual = this.productos.findIndex(item => item.key == key);
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
                 if(i != indexActual){
-                    if(this.productos[i].nomProducto === this.productos[indexActual].nomProducto){
+                    if(this.productos[i].nomProducto === nomProducto){
                         repetido = true;
                     }
                 }
@@ -209,7 +267,13 @@ export default {
                 const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
                 const index2 = this.productos.findIndex(item => item.key == key);
                 this.productos[index2].stock = this.prods[index].stock
+                this.productos[index2].nomProducto = this.prods[index].nomProducto;
                 this.productos[index2].codigoBarra = this.prods[index].codigoBarra
+                this.productos[index2].codBar = this.prods[index].codigoBarra
+                this.productos[index2].marca = this.prods[index].marca
+                if(this.productos[index2].stock < 1){
+                    this.alerta('danger', 'No hay stock disponible para este producto')
+                }
                 if(this.productos[index2].cantidad > this.productos[index2].stock){
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
@@ -234,7 +298,12 @@ export default {
                     this.productos[this.productos.length-1].nomProducto = this.prods[a].nomProducto
                     this.productos[this.productos.length-1].stock = this.prods[a].stock
                     this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].codBar = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].marca = this.prods[a].marca
                     this.productos[this.productos.length-1].key = this.cantidadProductos
+                    if(this.productos[this.productos.length-1].stock === 0){
+                        this.alerta('danger', 'No hay stock disponible para el producto ' + this.productos[this.productos.length-1].nomProducto)
+                    }
                     break;
                 }
                 if(a == this.prods.length){
@@ -257,7 +326,7 @@ export default {
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
         cantMin(producto){
             const index = this.productos.findIndex(item => item.key == producto);
-            if(this.productos[index].cantidad < 1){
+            if(this.productos[index].cantidad < 1 || this.productos[index].cantidad == ''){
                 this.productos[index].cantidad = 1;
             } else if(this.productos[index].cantidad > this.productos[index].stock){
                 this.productos[index].cantidad = this.productos[index].stock;
@@ -333,7 +402,7 @@ export default {
                             token: this.token
                         }
                     }
-                    this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codigoBarra}, config)
+                    this.axios.post('api/agregahistProd', {cantidad: this.productos[i].cantidad, codigoBarra: this.productos[i].codBar}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             Swal.fire(
@@ -370,7 +439,7 @@ export default {
                             token: this.token
                         }
                     }
-                    this.axios.put(`api/actualizaStock/${this.productos[i].codigoBarra}`, {cantidad: this.productos[i].cantidad}, config)
+                    this.axios.put(`api/actualizaStock/${this.productos[i].codBar}`, {cantidad: this.productos[i].cantidad}, config)
                         .then(res => {
                             this.actualizarStock();
                         })
@@ -417,6 +486,38 @@ export default {
                     })
                 })
         },
+        //Función para exportar un MEMO
+        renderDoc() {
+            loadFile(
+                "https://docxtemplater.com/tag-example.docx",
+                function (error, content) {
+                    if (error) {
+                        throw error;
+                    }
+                    const zip = new PizZip(content);
+                    const doc = new Docxtemplater(zip, {
+                        paragraphLoop: true,
+                        linebreaks: true,
+                    });
+
+                    // render the document (replace all occurences of {first_name} by John, {last_name} by Doe, ...)
+                    doc.render({
+                        first_name: "John",
+                        last_name: "Doe",
+                        phone: "0652455478",
+                        description: "New Website",
+                    });
+
+                    const out = doc.getZip().generate({
+                        type: "blob",
+                        mimeType:
+                            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    });
+                    // Output the document using Data-URI
+                    saveAs(out, "output.docx");
+                }
+            );
+        },
         //Funciones de la alerta
         countDownChanged(dismissCountDown) {
             this.dismissCountDown = dismissCountDown
@@ -452,7 +553,6 @@ export default {
         border-radius: 12px !important;
         border-color: black !important;
     }
-
     /* Las animaciones de entrada y salida pueden usar */
     /* funciones de espera y duración diferentes.      */
     .slide-fade-enter-active {
