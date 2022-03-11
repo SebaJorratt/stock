@@ -125,6 +125,9 @@
 import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
 
+//IMPORTACIONES PARA EXCEL
+
+
 import { mapState } from 'vuex'
 
 function loadFile(url, callback) {
@@ -250,7 +253,6 @@ export default {
         },
         //Si se cambia un producto se debe buscar su stock
         cambioProducto(nomProducto, key){
-            console.log(nomProducto, this.productoAnt)
             const indexActual = this.productos.findIndex(item => item.key == key);
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
@@ -485,7 +487,23 @@ export default {
         },
         //Función para exportar un MEMO
         renderDoc() {
-            console.log('Hola')
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.post('api/obtenerMemo', {}, config)
+                        .then(res => {
+                            console.log(res.data)
+                        })
+                        .catch(e => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Oops...',
+                            text: 'No se ha logrado registrar la entrega de insumos',
+                            footer: 'Posible error del sistema'
+                        })
+                        })
         },
         //Funciones de la alerta
         countDownChanged(dismissCountDown) {
