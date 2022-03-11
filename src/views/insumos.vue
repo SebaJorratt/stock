@@ -126,7 +126,7 @@ import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
 
 //IMPORTACIONES PARA EXCEL
-
+import { saveAs } from "file-saver";
 
 import { mapState } from 'vuex'
 
@@ -495,6 +495,7 @@ export default {
             this.axios.post('api/obtenerMemo', {}, config)
                         .then(res => {
                             console.log(res.data)
+                            saveAs(res.data, "output.xlsx");
                         })
                         .catch(e => {
                         Swal.fire({
