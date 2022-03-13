@@ -126,6 +126,16 @@ import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
 
 //IMPORTACIONES PARA EXCEL
+//EXCEL eXportación
+import * as XLSX from 'xlsx/xlsx.mjs';
+/* load 'fs' for readFile and writeFile support */
+import * as fs from 'fs';
+XLSX.set_fs(fs);
+/* load the codepage support library for extended support with older formats  */
+import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
+XLSX.set_cptable(cpexcel);
+
+//Guardar archivos
 import { saveAs } from "file-saver";
 
 import { mapState } from 'vuex'
@@ -485,6 +495,12 @@ export default {
                     })
                 })
         },
+        s2ab(s) {
+            var buf = new ArrayBuffer(s.length);
+            var view = new Uint8Array(buf);
+            for (var i=0; i!=s.length; ++i) view[i] = s.charCodeAt(i) & 0xFF;
+            return buf;
+        },
         //Función para exportar un MEMO
         renderDoc() {
             let config = {
@@ -493,18 +509,28 @@ export default {
                 }
             }
             this.axios.post('api/obtenerMemo', {}, config)
-                        .then(res => {
-                            console.log(res.data)
-                            saveAs(res.data, "output.xlsx");
-                        })
-                        .catch(e => {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Oops...',
-                            text: 'No se ha logrado registrar la entrega de insumos',
-                            footer: 'Posible error del sistema'
-                        })
-                        })
+                .then(res => {
+                    //console.log(res.data)
+                    var blob = new Blob([this.s2ab(res.data)], {type: ''});
+                    console.log(blob)
+                    let url = window.URL.createObjectURL(blob); // 3. Crea un punto de URL temporal al objeto Blob
+                    // 4. Puede simular una gama de operaciones para este objeto de archivo después de crear una URL, por ejemplo: vista previa, descargar
+                    let a = document.createElement("a");
+                    a.href = url;
+                    a.download = "Formulario de exportación.xlsx";
+                    a.click();
+                    // 5. Liberar esta URL de objeto temporal
+                    window.URL.revokeObjectURL(url);
+
+                })
+                .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha logrado registrar la entrega de insumos',
+                        footer: 'Posible error del sistema'
+                    })
+                })
         },
         //Funciones de la alerta
         countDownChanged(dismissCountDown) {
