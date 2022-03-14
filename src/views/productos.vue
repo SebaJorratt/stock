@@ -53,7 +53,7 @@
                     </div>
                     <div class="card-body">
                         <b-row class="mt-2">
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Codigo de Barras</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.codigoAgregar.$model">
                                 <p class="text-danger" v-if="$v.codigoAgregar.$error" >El codigo del Producto es Requerido</p>
@@ -63,10 +63,15 @@
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.productoAgregar.$model">
                                 <p class="text-danger" v-if="$v.productoAgregar.$error" >El nombre del Producto es Requerido</p>
                             </b-col>
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Marca del Producto</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.marcaAgregar.$model">
                                 <p class="text-danger" v-if="$v.marcaAgregar.$error" >La marca del Producto es Requerida</p>
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Stock Reg.</label>
+                                <input type="number" @change="cantMinStockReg(stockAgrega)" class="form-control" aria-describedby="emailHelp" v-model="$v.stockAgrega.$model">
+                                <p class="text-danger" v-if="$v.stockAgrega.$error" >El stock regional del Producto es Requerida</p>
                             </b-col>
                         </b-row>
                         <b-row class="mt-4">
@@ -285,6 +290,7 @@ export default {
         productoAgregar: '',
         marcaAgregar: '',
         descripcionAgrega: '',
+        stockAgrega: 0,
         //Variable para reconocer un producto
         codigoBarra: '',
         //Variables para EDITAR
@@ -311,6 +317,7 @@ export default {
         producto:{required},
         marca:{required},
         descripcion:{required},
+        stockAgrega: {required}
     },
     computed: {
       ...mapState(['token', 'usuarioDB'])
@@ -427,7 +434,7 @@ export default {
                         token: this.token
                     }
                 }
-                this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega}, config)
+                this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega, stock: this.stockAgrega}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         this.agregarStock();
@@ -485,6 +492,12 @@ export default {
                             footer: 'Posible error del sistema'
                         })
                     })
+            }
+        },
+        //indicamos la minima cantidad para el stock regional
+        cantMinStockReg(stock){
+            if(stock < 0 || stock === ''){
+                this.stockAgrega = 0
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0

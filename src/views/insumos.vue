@@ -39,24 +39,28 @@
                             </b-col>
                         </b-row>
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
-                            <b-col cols="12" md="3">
+                            <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Codigo de Barra</label>
-                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.nomProducto)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
+                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.codBar)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
                             </b-col>
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
-                                <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
-                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                <select disabled class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                    <option v-for="i in prods" :key="i.codBar" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="2">
-                                <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
+                            <b-col cols="12" md="1">
+                                <label for="exampleInputEmail1" class="form-label">Cantidad</label>
                                 <input type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                             </b-col>
-                            <b-col cols="12" md="2">
-                                <label for="exampleInputEmail1" class="form-label">Stock Actual</label>
+                            <b-col cols="12" md="1">
+                                <label for="exampleInputEmail1" class="form-label">Stock</label>
                                 <input disabled type="number" class="form-control" aria-describedby="emailHelp" v-model="i.stock">
                             </b-col>
+                            <b-col cols="12" md="3">
+                                    <label for="exampleInputEmail1" class="form-label">Observaciones</label>
+                                    <textarea type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="i.descripcion"></textarea>
+                                </b-col>
                             <b-col cols="12" md="2">
                                 <b-button @click="detalles(i.codBar)" v-b-modal.modal-1 class="btn-success boton">Detalles Producto</b-button>
                             </b-col>
@@ -66,22 +70,26 @@
                         </b-row>
                     </div>
                 </div>
-                <b-modal id="modal-2" size="lg" class="modal-lg" title="Preview del MEMO N° ">
+                <b-modal id="modal-2" size="xl" class="modal-xl" title="Preview del MEMO N° ">
                     <div class="card-body">
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Nombre del Producto</label>
                                 <select disabled class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
-                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                    <option v-for="i in prods" :key="i.codigoBarra" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="4">
-                                <label for="exampleInputEmail1" class="form-label">Cantidad ha agregar</label>
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Cantidad</label>
                                 <input disabled type="number" @change="cantMin(i.key)" min="1" class="form-control" aria-describedby="emailHelp" v-model="i.cantidad">
                             </b-col>
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Marca del Producto</label>
                                 <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="i.marca">
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Observacion</label>
+                                <input disabled type="text" class="form-control" aria-describedby="emailHelp" v-model="i.descripcion">
                             </b-col>
                         </b-row>
                         <b-row>
@@ -125,19 +133,6 @@
 import navbar from "../components/navbar.vue";
 import { required, minLength} from "vuelidate/lib/validators";
 
-//IMPORTACIONES PARA EXCEL
-//EXCEL eXportación
-import * as XLSX from 'xlsx/xlsx.mjs';
-/* load 'fs' for readFile and writeFile support */
-import * as fs from 'fs';
-XLSX.set_fs(fs);
-/* load the codepage support library for extended support with older formats  */
-import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
-XLSX.set_cptable(cpexcel);
-
-//Guardar archivos
-import { saveAs } from "file-saver";
-
 import { mapState } from 'vuex'
 
 function loadFile(url, callback) {
@@ -152,7 +147,7 @@ export default {
       return {
         //Datos para agregar un nuevo memo (historial) con v-model
         cantidadProductos: 1,
-        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: ''}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: '', vacio: '', descripcion: ''}],
         prods: [],
         productoAnt: '',
         //Variable para las dependencias 
@@ -201,6 +196,7 @@ export default {
                     this.productos[0].codigoBarra = this.prods[0].codigoBarra
                     this.productos[0].codBar = this.prods[0].codigoBarra
                     this.productos[0].marca = this.prods[0].marca
+                    this.productos[0].descripcion = this.prods[0].descripcion
                     if(this.productos[0].stock === 0){
                         this.alerta('danger', 'No se encuentra stock del producto ' + this.productos[0].nomProducto)
                     }
@@ -247,39 +243,40 @@ export default {
                 this.alerta('danger', 'No se han podido cargar los Funcionarios');
             })
         },
-        buscarPorCodigo(codigoBarra, key, nomProducto){
-            this.anterior(nomProducto)
+        buscarPorCodigo(codigoBarra, key, codBar){
+            this.anterior(codBar)
             const indexActual = this.productos.findIndex(item => item.key == key);
             const posProd = this.prods.findIndex(item => item.codigoBarra == codigoBarra)
             if(posProd !== -1){
-                this.cambioProducto(this.prods[posProd].nomProducto, key)
+                this.cambioProducto(this.prods[posProd].codigoBarra, key)
             }else{
-                this.productos[indexActual].nomProducto = this.productoAnt
+                this.productos[indexActual].codBar = this.productoAnt
             }
         },
         //Función que te permite guardar el valor anterior del select
-        anterior(nomProducto){
-            this.productoAnt = nomProducto
+        anterior(codBar){
+            this.productoAnt = codBar
         },
         //Si se cambia un producto se debe buscar su stock
-        cambioProducto(nomProducto, key){
+        cambioProducto(codigoBarra, key){
             const indexActual = this.productos.findIndex(item => item.key == key);
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
                 if(i != indexActual){
-                    if(this.productos[i].nomProducto === nomProducto){
+                    if(this.productos[i].codBar === codigoBarra){
                         repetido = true;
                     }
                 }
             }
             if(!repetido){
-                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index = this.prods.findIndex(item => item.codigoBarra == codigoBarra);
                 const index2 = this.productos.findIndex(item => item.key == key);
                 this.productos[index2].stock = this.prods[index].stock
                 this.productos[index2].nomProducto = this.prods[index].nomProducto;
                 this.productos[index2].codigoBarra = this.prods[index].codigoBarra
                 this.productos[index2].codBar = this.prods[index].codigoBarra
                 this.productos[index2].marca = this.prods[index].marca
+                this.productos[index2].descripcion = this.prods[index].descripcion
                 if(this.productos[index2].stock < 1){
                     this.alerta('danger', 'No hay stock disponible para este producto')
                 }
@@ -287,7 +284,7 @@ export default {
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
             }else{
-                this.productos[indexActual].nomProducto = this.productoAnt
+                this.productos[indexActual].codBar = this.productoAnt
                 
             }
         },
@@ -296,10 +293,10 @@ export default {
         agregaProducto(){
             this.cantidadProductos++
             var a = 0;
-            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0});
+            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: '', vacio: '', descripcion: ''});
             //Busca si un producto ya existe en en alguno de los select habilitados 
             while(a < this.prods.length){
-                const index = this.productos.findIndex(item => item.nomProducto == this.prods[a].nomProducto);
+                const index = this.productos.findIndex(item => item.codBar == this.prods[a].codigoBarra);
                 //Si lo encuentra pasa al siguiente producto
                 if(index != -1){
                     a++;
@@ -309,6 +306,7 @@ export default {
                     this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
                     this.productos[this.productos.length-1].codBar = this.prods[a].codigoBarra
                     this.productos[this.productos.length-1].marca = this.prods[a].marca
+                    this.productos[this.productos.length-1].descripcion = this.prods[a].descripcion
                     this.productos[this.productos.length-1].key = this.cantidadProductos
                     if(this.productos[this.productos.length-1].stock === 0){
                         this.alerta('danger', 'No hay stock disponible para el producto ' + this.productos[this.productos.length-1].nomProducto)
@@ -347,6 +345,12 @@ export default {
             yourDate = new Date(yourDate.getTime() - (offset*60*1000))
             return yourDate.toISOString().split('T')[0]
 		},
+        fechaMemo(date){
+            const formatDate = (date)=>{
+            let formatted_date = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
+            return formatted_date;
+            }
+        },
         //Función que permite generar un informe y enviar los datos de un nuevo HISTORIAL 
         generarInforme(){
             var dt = this.convertDateMysql(new Date())
@@ -508,11 +512,13 @@ export default {
                     token: this.token
                 }
             }
-            this.axios.post('api/obtenerMemo', {}, config)
+            var date = new Date()
+            var dt = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
+            const index = this.dependencias.findIndex(item => item.nomDependencia == this.dependencia);
+            this.axios.post('api/obtenerMemo', {productos: this.productos, dependencia: this.dependencia, codDependencia: this.dependencias[index].codDependencia, comuna: this.dependencias[index].comuna, fecha: dt.toString()}, config)
                 .then(res => {
                     //console.log(res.data)
                     var blob = new Blob([this.s2ab(res.data)], {type: ''});
-                    console.log(blob)
                     let url = window.URL.createObjectURL(blob); // 3. Crea un punto de URL temporal al objeto Blob
                     // 4. Puede simular una gama de operaciones para este objeto de archivo después de crear una URL, por ejemplo: vista previa, descargar
                     let a = document.createElement("a");

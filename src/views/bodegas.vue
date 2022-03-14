@@ -85,12 +85,12 @@
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Codigo de Barra</label>
-                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.nomProducto)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
+                                <input type="text" @input="buscarPorCodigo(i.codigoBarra, i.key, i.codBar)" class="form-control" aria-describedby="emailHelp" v-model="i.codigoBarra"> 
                             </b-col>
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
-                                <select class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
-                                    <option v-for="i in prods" :key="i.nomProducto" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                <select disabled class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
+                                    <option v-for="i in prods" :key="i.codBar" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="1">
@@ -262,7 +262,7 @@ export default {
         proveedor: '',
         nuevaOrden: '',
         cantidadProductos: 1,
-        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, stockCritico: 0, codigoBarra: '', codBar: ''}],
+        productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, stockCritico: 0, codigoBarra: '', codBar: '', marca: ''}],
         prods: [],
         productoAnt: '',
         //VARIABLES DE DETALLES
@@ -306,6 +306,7 @@ export default {
                     this.productos[0].stockCritico = this.prods[0].stockCritico
                     this.productos[0].codigoBarra = this.prods[0].codigoBarra
                     this.productos[0].codBar = this.prods[0].codigoBarra
+                    this.productos[0].marca = this.prods[0].marca
                     if(this.productos[0].stock < this.productos[0].stockCritico){
                         if(this.productos[0].stock === 0){
                             this.alerta('danger', 'No hay stock disponible en bodega para el producto ' + this.productos[0].nomProducto)
@@ -341,39 +342,40 @@ export default {
             }
             this.cargarProductos(true)
         },
-        buscarPorCodigo(codigoBarra, key, nomProducto){
-            this.anterior(nomProducto)
+        buscarPorCodigo(codigoBarra, key, codBar){
+            this.anterior(codBar)
             const indexActual = this.productos.findIndex(item => item.key == key);
             const posProd = this.prods.findIndex(item => item.codigoBarra == codigoBarra)
             if(posProd !== -1){
-                this.cambioProducto(this.prods[posProd].nomProducto, key)
+                this.cambioProducto(this.prods[posProd].codigoBarra, key)
             }else{
-                this.productos[indexActual].nomProducto = this.productoAnt
+                this.productos[indexActual].codBar = this.productoAnt
             }
         },
         //Función que te permite guardar el valor anterior del select
-        anterior(nomProducto){
-            this.productoAnt = nomProducto
+        anterior(codBar){
+            this.productoAnt = codBar
         },
         //Si se cambia un producto se debe buscar su stock
-        cambioProducto(nomProducto, key){
+        cambioProducto(codigoBarra, key){
             const indexActual = this.productos.findIndex(item => item.key == key);
             var repetido = false;
             for(var i = 0; i<this.productos.length; i++){
                 if(i != indexActual){
-                    if(this.productos[i].nomProducto === nomProducto){
+                    if(this.productos[i].codBar === codigoBarra){
                         repetido = true;
                     }
                 }
             }
             if(!repetido){
-                const index = this.prods.findIndex(item => item.nomProducto == nomProducto);
+                const index = this.prods.findIndex(item => item.codigoBarra == codigoBarra);
                 const index2 = this.productos.findIndex(item => item.key == key);
                 this.productos[index2].stock = this.prods[index].stockBodega
                 this.productos[index2].stockCritico = this.prods[index].stockCritico
                 this.productos[index2].nomProducto = this.prods[index].nomProducto;
                 this.productos[index2].codigoBarra = this.prods[index].codigoBarra
                 this.productos[index2].codBar = this.prods[index].codigoBarra
+                this.productos[index2].marca = this.prods[index].marca
                 if(this.productos[index2].cantidad > this.productos[index2].stock){
                     this.productos[index2].cantidad = this.productos[index2].stock;
                 }
@@ -384,7 +386,7 @@ export default {
                     this.alerta('danger', 'El stock que existe actualmente en bodega del producto "' + this.productos[index2].nomProducto + '" es inferior al stock crítico')
                 }
             }else{
-                this.productos[indexActual].nomProducto = this.productoAnt  
+                this.productos[indexActual].codBar = this.productoAnt  
             }
         },
         //Se agrega un nuevo posible producto
@@ -392,9 +394,9 @@ export default {
         agregaProducto(){
             this.cantidadProductos++
             var a = 0;
-            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0});
+            this.productos.push({key: this.cantidadProductos, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: ''});
             while(a < this.prods.length){
-                const index = this.productos.findIndex(item => item.nomProducto == this.prods[a].nomProducto);
+                const index = this.productos.findIndex(item => item.codBar == this.prods[a].codigoBarra);
                 if(index != -1){
                     a++;
                 }else{
@@ -403,6 +405,7 @@ export default {
                     this.productos[this.productos.length-1].stockCritico = this.prods[a].stockCritico
                     this.productos[this.productos.length-1].codigoBarra = this.prods[a].codigoBarra
                     this.productos[this.productos.length-1].codBar = this.prods[a].codigoBarra
+                    this.productos[this.productos.length-1].marca = this.prods[a].marca
                     this.productos[this.productos.length-1].key = this.cantidadProductos
                     break;
                 }
