@@ -503,8 +503,8 @@ export default {
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
         cantMin(nomBodega){
             const index = this.bodegas.findIndex(item => item.nomBodega == nomBodega);
-            if(this.bodegas[index].stockBodega < 1){
-                this.bodegas[index].stockBodega = 1;
+            if(this.bodegas[index].stockBodega < 0){
+                this.bodegas[index].stockBodega = 0;
             }
             if(this.bodegas[index].stockBodega < this.bodegas[index].stockCritico){
                 this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)
@@ -513,8 +513,8 @@ export default {
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
         cantMinCritico(nomBodega){
             const index = this.bodegas.findIndex(item => item.nomBodega == nomBodega);
-            if(this.bodegas[index].stockCritico < 1){
-                this.bodegas[index].stockCritico = 1;
+            if(this.bodegas[index].stockCritico < 0){
+                this.bodegas[index].stockCritico = 0;
             }
             if(this.bodegas[index].stockCritico > this.bodegas[index].stockBodega ){
                 this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.bodegas[index].nomBodega)

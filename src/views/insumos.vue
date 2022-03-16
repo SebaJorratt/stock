@@ -38,6 +38,18 @@
                                 <b-button @click="quitarProducto()" class="btn-danger btn boton">Quitar Producto</b-button>
                             </b-col>
                         </b-row>
+                        <b-row class="mt-2">
+                            <b-col cols="12" md="6">
+                                <label for="exampleInputEmail1" class="form-label">Referencia</label>
+                                <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.referencia.$model">
+                                <p class="text-danger" v-if="$v.referencia.$error" >Ingrese la referencia para generar el memo</p>
+                            </b-col>
+                            <b-col cols="12" md="6">
+                                <label for="exampleInputEmail1" class="form-label">Número de Ticket</label>
+                                <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.ticket.$model">
+                                <p class="text-danger" v-if="$v.ticket.$error" >Ingrese el número de ticket para el memo</p>
+                            </b-col>
+                        </b-row>
                         <b-row class="mt-2" v-for="i in productos" :key="i.key">
                             <b-col cols="12" md="2">
                                 <label for="exampleInputEmail1" class="form-label">Codigo de Barra</label>
@@ -166,11 +178,15 @@ export default {
         marca: '',
         descripcion: '',
         memo: 1,
+        ticket: '',
+        referencia: ''
       }
     },
     validations:{
       //Validaciones de los input
-      dependencia: {required}
+      dependencia: {required},
+      referencia: {required},
+      ticket: {required}
     },
     computed: {
       ...mapState(['token', 'usuarioDB'])
@@ -194,7 +210,6 @@ export default {
                 if(this.memo === null){
                     this.memo=0;
                 }
-                console.log(this.memo)
             })
             .catch(e => {
                 this.alerta('danger', 'No se ha logrado obtener el memo');
@@ -401,6 +416,7 @@ export default {
                         if(!res.data.sqlMessage){
                             this.HistorialProducto();
                             this.restarStock();
+                            this.renderDoc();
                             this.obtenerUltimoMemo();
                         }else{
                             Swal.fire({
@@ -536,9 +552,8 @@ export default {
             var date = new Date()
             var dt = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
             const index = this.dependencias.findIndex(item => item.nomDependencia == this.dependencia);
-            this.axios.post('api/obtenerMemo', {productos: this.productos, dependencia: this.dependencia, codDependencia: this.dependencias[index].codDependencia, comuna: this.dependencias[index].comuna, fecha: dt.toString()}, config)
+            this.axios.post('api/obtenerMemo', {productos: this.productos, dependencia: this.dependencia, codDependencia: this.dependencias[index].codDependencia, comuna: this.dependencias[index].comuna, fecha: dt.toString(), referencia: this.referencia, ticket: this.ticket, memo: this.memo+1}, config)
                 .then(res => {
-                    //console.log(res.data)
                     var blob = new Blob([this.s2ab(res.data)], {type: ''});
                     let url = window.URL.createObjectURL(blob); // 3. Crea un punto de URL temporal al objeto Blob
                     // 4. Puede simular una gama de operaciones para este objeto de archivo después de crear una URL, por ejemplo: vista previa, descargar
