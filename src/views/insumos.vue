@@ -178,8 +178,28 @@ export default {
     created(){
         this.cargarProductos(true);
         this.cargarDependencias();
+        this.obtenerUltimoMemo();
     },
     methods:{
+        //Obtener ultimo memo
+        obtenerUltimoMemo(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get('api/obtenerUltimoMemo', config)
+            .then(res => {
+                this.memo = res.data[0].memo
+                if(this.memo === null){
+                    this.memo=0;
+                }
+                console.log(this.memo)
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se ha logrado obtener el memo');
+            })
+        },
         //Metodo que Carga todos los productos del sistema
         cargarProductos(primera){
             let config = {
@@ -376,11 +396,12 @@ export default {
                                 token: this.token
                             }
                         }
-                        this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia}, config)
+                        this.axios.post('api/agregaHistorial', {fecha: dt, nomFuncionario: this.funcionario, nomDependencia: this.dependencia, memo: this.memo+1}, config)
                         .then(res => {
                         if(!res.data.sqlMessage){
                             this.HistorialProducto();
                             this.restarStock();
+                            this.obtenerUltimoMemo();
                         }else{
                             Swal.fire({
                             icon: 'error',
