@@ -58,7 +58,7 @@
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
                                 <select disabled class="form-control" @click="anterior(i.nomProducto)" @change="cambioProducto(i.nomProducto, i.key)" v-model="i.nomProducto">
-                                    <option v-for="i in prods" :key="i.codBar" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                    <option v-for="i in prods" :key="i.codigoBarra" :value="i.nomProducto">{{i.nomProducto}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="1">

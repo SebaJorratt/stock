@@ -26,16 +26,18 @@
                         <b-button @click="NoAgregar()" class="btn boton mt-5">No Agregar</b-button>
                     </b-col>
                 </b-row>
-                <b-row class="m-4" v-if="agregar === 'si'">
-                    <b-col cols="12" md="6">
-                        <label for="exampleInputEmail1" class="form-label">Nueva Bodega</label>
-                        <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.nuevaBodega.$model">
-                        <p class="text-danger" v-if="$v.nuevaBodega.$error">Debe Ingresar el nombre de la Bodega</p>
-                    </b-col>
-                    <b-col cols="12" md="6">
-                        <b-button @click="agregaBodega()" variant="primary" class="btn boton mt-5">Agregar Bodega</b-button>
-                    </b-col>
-                </b-row>
+                <div v-if="pestaña === 'bodegas'">
+                    <b-row class="m-4" v-if="agregar === 'si'">
+                        <b-col cols="12" md="6">
+                            <label for="exampleInputEmail1" class="form-label">Nueva Bodega</label>
+                            <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.nuevaBodega.$model">
+                            <p class="text-danger" v-if="$v.nuevaBodega.$error">Debe Ingresar el nombre de la Bodega</p>
+                        </b-col>
+                        <b-col cols="12" md="6">
+                            <b-button @click="agregaBodega()" variant="primary" class="btn boton mt-5">Agregar Bodega</b-button>
+                        </b-col>
+                    </b-row>
+                </div>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="bodegas" v-if="pestaña === 'bodegas'">
                   <thead>
                     <tr>
@@ -195,8 +197,11 @@
                 </table>
 
                 <b-row v-if="pestaña === 'enviar'">
-                    <b-col cols="12" md="12">
+                    <b-col cols="12" md="6">
                         <b-button @click="Volver()" class="btn btn boton mt-5">Volver al Listado de Bodegas</b-button>
+                    </b-col>
+                    <b-col cols="12" md="6">
+                        <b-button @click="ActAgregarProd()" class="btn btn-success boton mt-5">Agregar nuevo Producto</b-button>
                     </b-col>
                 </b-row>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="enviar" v-if="pestaña === 'enviar'">
@@ -223,6 +228,46 @@
                     </tr>
                   </tbody>
                 </table>
+
+                <b-row v-if="pestaña === 'agregarProducto'">
+                    <b-col cols="12" md="12">
+                        <b-button @click="VolverEnviar()" class="btn btn boton mt-5">Volver al Listado de Bodegas</b-button>
+                    </b-col>
+                </b-row>
+                <div class="card mt-5" v-if="pestaña === 'agregarProducto'" style="border-color: black;">
+                    <div class="card-header">
+                        <h2>Agrega un Nuevo Producto a Bodega: {{nomBodega}}</h2>
+                    </div>
+                    <div class="card-body">
+                        <b-row class="mt-2">
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Codigo del Producto</label>
+                                <input type="text" @input="buscarCodigoAGREGADO()" class="form-control" aria-describedby="emailHelp" v-model="$v.productoAGREGADO.$model">
+                            </b-col>
+                            <b-col cols="12" md="3">
+                                <label for="exampleInputEmail1" class="form-label">Producto</label>
+                                <select disabled class="form-control" v-model="$v.nombreProductoAGREGADO.$model">
+                                    <option v-for="i in productosAGREGAR" :key="i.codigoBarra" :value="i.nomProducto">{{i.nomProducto}}</option>
+                                </select>
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Stock Bodega</label>
+                                <input type="number" class="form-control" @change="cantMinBodegaAgregar()" aria-describedby="emailHelp" v-model="$v.stockAGREGADO.$model">
+                                <p class="text-danger" v-if="$v.stockAGREGADO.$error" >Es necesario ingresar este stock</p>
+                            </b-col>
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Stock Critico</label>
+                                <input type="number" class="form-control" @change="cantMinCriticoAGREGAR()" aria-describedby="emailHelp" v-model="$v.stockCriticoAGREGADO.$model">
+                                <p class="text-danger" v-if="$v.stockCriticoAGREGADO.$error" >Es necesario ingresar este stock</p>
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-2">
+                            <b-col cols="12" md="12">
+                                <b-button @click="agregarPRODUCTOBODEGA()" class="btn btn-success boton mt-5">Agregar Producto</b-button>
+                            </b-col>
+                        </b-row>
+                    </div>
+                </div>
             </div>
         </b-container>
     </div>
@@ -270,6 +315,13 @@ export default {
         producto: '',
         marca: '',
         descripcion: '',
+        //VARIABLES PARA AGREGAR UN NUEVO PRODUCTO
+        productoAGREGADO: '',
+        nombreProductoAGREGADO: '',
+        stockAGREGADO: '',
+        stockCriticoAGREGADO: '',
+        productosAGREGAR: [],
+        codigoAGREGAR: '',
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
@@ -281,6 +333,9 @@ export default {
         nuevaBodega:{required},
         proveedor:{required},
         nuevaOrden:{required},
+        stockAGREGADO:{required},
+        stockCriticoAGREGADO:{required},
+        nombreProductoAGREGADO:{required}
     },
     computed: {
       ...mapState(['token', 'usuarioDB'])
@@ -330,6 +385,23 @@ export default {
                 for(var i = 0; i<res.data.length; i++){
                     this.enviar.push({codigoBarra: res.data[i].codigoBarra, nomProducto: res.data[i].nomProducto, stock: res.data[i].stock, stockBodega: res.data[i].stockBodega, cantidad: 1, stockCritico: res.data[i].stockCritico})
                 }
+            })
+            .catch(e => {
+                this.alerta('danger', 'No se han podido cargar los Productos');
+            })
+        },
+        //FUNCIÓN QUE CARGA TODOS LOS PRODUCTOS PARA AGREGARLO A UNA NUEVA BODEGA
+        cargarTODOSPRODUCTOS(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.get(`api/obtenerProductosSolos`, config)
+            .then(res => {
+                this.productosAGREGAR = res.data;
+                this.nombreProductoAGREGADO = this.productosAGREGAR[0].nomProducto;
+                this.codigoAGREGAR = this.productosAGREGAR[0].codigoBarra;
             })
             .catch(e => {
                 this.alerta('danger', 'No se han podido cargar los Productos');
@@ -447,6 +519,23 @@ export default {
             }
             if(this.enviar[index].stockBodega - parseInt(this.enviar[index].cantidad) < this.enviar[index].stockCritico){
                 this.alerta('danger', 'Si realiza esta acción el stock en bodega del producto "' + this.enviar[index].nomProducto + '" sera inferior al stock crítico')
+            }
+        },
+        //Función que maneja valores del input de stock de bodega PARA AGREGAR UN PRODUCTO A UNA NUEVA BODEGA
+        cantMinBodegaAgregar(){
+            if(this.stockAGREGADO < 0){
+                this.stockAGREGADO = 0;
+            }
+            if(this.stockAGREGADO < this.stockCriticoAGREGADO){
+                this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.nomBodega)
+            }
+        },
+        cantMinCriticoAGREGAR(){
+            if(this.stockCriticoAGREGADO < 0){
+                this.stockCriticoAGREGADO = 0;
+            }
+            if(this.stockCriticoAGREGADO > this.stockAGREGADO ){
+                this.alerta('danger', 'El stock que esta ingresando es menor al critico para la bodega ' + this.nomBodega)
             }
         },
         //Permite ver los detalles de un producto y los carga
@@ -640,6 +729,13 @@ export default {
             this.cargarOrdenes();
             $('#ordenes').DataTable()
         },
+        //Volver desde la vista de agregar un nuevo producto a la vista del despliegue de los proeductos de una bodega
+        VolverEnviar(){
+            this.pestaña = 'enviar'
+            $('#enviar').DataTable()
+            this.enviar = [];
+            this.cargarProductosBodega();
+        },
         //Funciones para cambiar las vistas
         ActAgregar(){
             this.agregar = 'si'
@@ -647,7 +743,7 @@ export default {
         NoAgregar(){
             this.agregar = 'no'
         },
-        
+        //Activadores de vistas 
         ActOrdenes(nomBodega){
             this.nomBodega = nomBodega
             this.pestaña = 'ordenes'
@@ -674,6 +770,14 @@ export default {
             $('#bodegas').DataTable().destroy();
             $('#enviar').DataTable()
             this.cargarProductosBodega();
+        },
+        ActAgregarProd(){
+            this.pestaña = 'agregarProducto'
+            $('#enviar').DataTable().destroy();
+            this.cargarTODOSPRODUCTOS();
+            this.productoAGREGADO = '';
+            this.stockCriticoAGREGADO = 1;
+            this.stockAGREGADO = 1;
         },
         //Funciones de AGREGAR
         agregaBodega(){
@@ -812,6 +916,47 @@ export default {
             const index = this.enviar.findIndex(item => item.codigoBarra == codigoBarra);
             this.enviar[index].stockBodega = this.enviar[index].stockBodega - parseInt(cantidad)
             this.enviar[index].stock = this.enviar[index].stock + parseInt(cantidad)
+        },
+        //FUNCIÓN QUE BUSCA UN CODIGO DE LA VISTA DE AGREGAR PRODUCTO A UNA BODEGA 
+        buscarCodigoAGREGADO(){
+            const posProd = this.productosAGREGAR.findIndex(item => item.codigoBarra == this.productoAGREGADO)
+            if(posProd !== -1){
+                this.nombreProductoAGREGADO = this.productosAGREGAR[posProd].nomProducto
+                this.codigoAGREGAR = this.productosAGREGAR[posProd].codigoBarra;
+            }
+        },
+        //Funcion que PERMITE AGREGAR un Producto a una Bodega reciente.
+        agregarPRODUCTOBODEGA(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+            this.axios.post('api/agregaProductoBodega', {stockBodega: this.stockAGREGADO, stockCritico: this.stockCriticoAGREGADO, nomBodega: this.nomBodega, codigoBarra: this.codigoAGREGAR}, config)
+                .then(res => {
+                if(!res.data.sqlMessage){
+                    Swal.fire(
+                        'Se ha generado un nuevo Producto',
+                        'Seleccione Ok para continuar',
+                        'success'
+                    )
+                }else{
+                    Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Codigo ya existente en bodega',
+                    footer: 'Error con el ingreso del Producto'
+                    })
+                }
+                })
+                .catch(e => {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'No se ha creado este nuevo tipo',
+                        footer: 'Posible error del sistema'
+                    })
+                })
         },
         //Funciones de las alertas
         countDownChanged(dismissCountDown) {

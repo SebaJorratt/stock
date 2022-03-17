@@ -6,7 +6,7 @@
             <h2 class="mt-1" v-if="pestaña === 'productos'"> Listado de Productos</h2>
             <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos del producto: {{codigoBarra}}</h2>
             <h2 class="mt-1" v-if="pestaña === 'ordenes'"> Ordenes de compra del producto: {{codigoBarra}}</h2> 
-            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
+            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del MEMO N°: {{memoHist}}</h2>
             <h2 class="mt-1" v-if="pestaña === 'detalleOrden'"> Detalle de la orden de compra numero: {{histo}}</h2>
             <b-alert
               :show="dismissCountDown"
@@ -111,15 +111,20 @@
                     </div>
                     <div class="card-body">
                         <b-row class="mt-2">
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Nombre del Producto</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.producto.$model">
                                 <p class="text-danger" v-if="$v.producto.$error" >El nombre del Producto es Requerido</p>
                             </b-col>
-                            <b-col cols="12" md="6">
+                            <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Marca del Producto</label>
                                 <input type="text" class="form-control" aria-describedby="emailHelp" v-model="$v.marca.$model">
                                 <p class="text-danger" v-if="$v.marca.$error" >La marca del Producto es Requerida</p>
+                            </b-col>
+                            <b-col cols="12" md="4">
+                                <label for="exampleInputEmail1" class="form-label">Stock DIREG</label>
+                                <input type="number" @change="cantMinStockReg(stockREG)" class="form-control" aria-describedby="emailHelp" v-model="$v.stockREG.$model">
+                                <p class="text-danger" v-if="$v.stockREG.$error" >La marca del Producto es Requerida</p>
                             </b-col>
                         </b-row>
                         <b-row class="mt-4">
@@ -162,7 +167,7 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'historial'">
                   <thead>
                     <tr>
-                      <th scope="col">ID</th>
+                      <th scope="col">MEMO</th>
                       <th scope="col">Funcionario</th>
                       <th scope="col">Dependencia</th>
                       <th scope="col">Fecha</th>
@@ -171,11 +176,11 @@
                   </thead>
                   <tbody>
                     <tr v-for="i in historial" :key="i.corrHistorial">
-                      <td scope="row">{{i.corrHistorial}}</td>
+                      <td scope="row">{{i.memo}}</td>
                       <td>{{i.nomFuncionario}}</td>
                       <td>{{i.nomDependencia}}</td>
                       <td>{{i.fecha}}</td>
-                      <td><b-button @click="ActDHist(i.corrHistorial)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                      <td><b-button @click="ActDHist(i.corrHistorial, i.memo)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -300,8 +305,10 @@ export default {
         stockBodegaEditar: 0,
         stockCriticoEditar: 0,
         nomBodegaEditar: '',
+        stockREG: 0,
         //Variable Historial
         histo: 0,
+        memoHist: 0,
         //Variables de las alertas
         dismissSecs: 5,
         dismissCountDown: 0,
@@ -317,7 +324,8 @@ export default {
         producto:{required},
         marca:{required},
         descripcion:{required},
-        stockAgrega: {required}
+        stockAgrega: {required},
+        stockREG: {required}
     },
     computed: {
       ...mapState(['token', 'usuarioDB'])
@@ -410,8 +418,9 @@ export default {
             $('#ordenes').DataTable()
             this.cargarOrdenes();
         },
-        ActDHist(corrHistorial){
+        ActDHist(corrHistorial, memo){
             this.histo = corrHistorial;
+            this.memoHist = memo;
             this.pestaña = 'detalleHist'
             $('#historial').DataTable().destroy();
             $('#detalleHist').DataTable()
@@ -498,6 +507,7 @@ export default {
         cantMinStockReg(stock){
             if(stock < 0 || stock === ''){
                 this.stockAgrega = 0
+                this.stockREG = 0
             }
         },
         //Indicamos el minimo de cantidad para que no este vacio o sea menor a 0
@@ -528,6 +538,7 @@ export default {
             this.producto = data.nomProducto
             this.marca = data.marca
             this.descripcion = data.descripcion
+            this.stockREG = data.stock
             this.ObtenerStockCritico();
         },
         //Función que recarga la función siguiente paraq un stock Critico
@@ -558,7 +569,7 @@ export default {
                         token: this.token
                     }
                 }
-                this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion}, config)
+                this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion, stock: this.stockREG}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
                         Swal.fire(

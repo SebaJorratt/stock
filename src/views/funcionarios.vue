@@ -5,7 +5,7 @@
             <h1 class="mt-2">Administración de Funcionarios</h1>
             <h2 class="mt-1" v-if="pestaña === 'funcionarios'"> Listado de Funcionarios</h2>
             <h2 class="mt-1" v-if="pestaña === 'historial'"> Historial de entrega de insumos del funcionario: {{codFuncionario}}</h2> 
-            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del historial numero: {{histo}}</h2>
+            <h2 class="mt-1" v-if="pestaña === 'detalleHist'"> Detalle del Memo N°: {{memoHist}}</h2>
             <b-alert
               :show="dismissCountDown"
               dismissible
@@ -154,7 +154,7 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'historial'">
                   <thead>
                     <tr>
-                      <th scope="col">ID</th>
+                      <th scope="col">Memo</th>
                       <th scope="col">Funcionario</th>
                       <th scope="col">Dependencia</th>
                       <th scope="col">Fecha</th>
@@ -163,11 +163,11 @@
                   </thead>
                   <tbody>
                     <tr v-for="i in historial" :key="i.corrHistorial">
-                      <td scope="row">{{i.corrHistorial}}</td>
+                      <td scope="row">{{i.memo}}</td>
                       <td>{{i.nomFuncionario}}</td>
                       <td>{{i.nomDependencia}}</td>
                       <td>{{i.fecha}}</td>
-                      <td><b-button @click="ActDHist(i.corrHistorial)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
+                      <td><b-button @click="ActDHist(i.corrHistorial, i.memo)" class="btn-success btn-sm" style="border-color: white;">Detalles</b-button></td>
                     </tr>
                   </tbody>
                 </table>
@@ -326,8 +326,9 @@ export default {
             $('#funcionarios').DataTable().destroy();
             this.cargarHistorial();
         },
-        ActDHist(corrHistorial){
+        ActDHist(corrHistorial, memo){
             this.histo = corrHistorial;
+            this.memoHist = memo;
             this.pestaña = 'detalleHist'
             $('#historial').DataTable().destroy();
             $('#detalleHist').DataTable()
