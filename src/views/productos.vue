@@ -103,6 +103,16 @@
                                 <b-button @click="AgregarProducto()" class="btn-success btn-sm boton">Agregar Producto</b-button>
                             </b-col>
                         </b-row>
+                        <b-row class="mt-5">
+                            <b-col cols="12" md="12">
+                                <img src="../assets/no-imagen.png" id="imagenAgrega">
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-5">
+                            <b-col cols="12" md="12">
+                                <input @change="CargaImagen($event)" id="fileInput" class="form-control" type="file" accept="image/*">
+                            </b-col>
+                        </b-row>
                     </div>
                 </div>
                 <div class="card mt-5" v-if="pestaña === 'editar'" style="border-color: black;">
@@ -136,7 +146,7 @@
                         </b-row>
                         <b-row class="mt-4">
                             <b-col cols="12" md="4">
-                                <b-button @click="EditarStockCritico()" class="btn-warning btn-sm boton">Editar Stock Critico</b-button>
+                                <b-button @click="EditarStockCritico()" class="btn-warning btn-sm boton-margin">Editar Stock Critico</b-button>
                             </b-col>
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Nombre de la Bodega</label>
@@ -155,6 +165,16 @@
                             </b-col>
                             <b-col cols="12" md="6">
                                 <b-button @click="EditarProducto()" class="btn-success btn-sm boton">Editar Producto</b-button>
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-5">
+                            <b-col cols="12" md="12">
+                                <img :src="imagenDir" id="imagenEdita">
+                            </b-col>
+                        </b-row>
+                        <b-row class="mt-5">
+                            <b-col cols="12" md="12">
+                                <input @change="CargaImagenEditar($event)" id="fileInputEdita" class="form-control" type="file" accept="image/*">
                             </b-col>
                         </b-row>
                     </div>
@@ -274,6 +294,7 @@ import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
 
 import { mapState } from 'vuex'
+
 export default {
     name: "about",
     components: {
@@ -290,15 +311,18 @@ export default {
         bod: [],
         detalleHist: [],
         detalleOrden: [],
+        imagenes: [],
         //Variables del AGREGAR
         codigoAgregar: '',
         productoAgregar: '',
         marcaAgregar: '',
         descripcionAgrega: '',
         stockAgrega: 0,
+        imagen: null,
         //Variable para reconocer un producto
         codigoBarra: '',
         //Variables para EDITAR
+        imagenDir: '',
         producto: '',
         marca: '',
         descripcion: '',
@@ -333,6 +357,7 @@ export default {
     created(){
         this.cargarProductos();
         this.cargarBodegas();
+        this.obtenerImagenes();
     },
     methods:{
         //Funcion que carga todos los productos del sistema
@@ -377,8 +402,10 @@ export default {
         Volver(){
             $('#historial').DataTable().destroy();
             $('#ordenes').DataTable().destroy()
+            this.imagen = null;
             this.pestaña = 'productos'
             this.cargarProductos();
+            this.obtenerImagenes();
             $('#productos').DataTable()
         },
         VolverHist(){
@@ -403,6 +430,14 @@ export default {
             this.pestaña = 'editar'
             $('#productos').DataTable().destroy();
             this.ObtenerDatos();
+            for(var i = 0; i<this.imagenes.length; i++){
+                if(this.imagenes[i].split('.')[0] == this.codigoBarra){
+                    this.imagenDir = 'http://localhost:3000/dbImagenes/' + this.imagenes[i]
+                    break;
+                }else{
+                    this.imagenDir = 'http://localhost:3000/dbImagenes/no-imagen.png'
+                }
+            }
         },
         ActHist(codigoBarra){
             this.codigoBarra = codigoBarra
@@ -434,6 +469,12 @@ export default {
             this.cargarDetalleOrden();
         },
         //Funciones de AGREGAR
+        //Funcion para cargar una imagen y mostrar su preview
+        CargaImagen(e){
+            this.imagen = e.target.files[0]
+            var imagenAgrega = document.getElementById('imagenAgrega');
+            imagenAgrega.src = URL.createObjectURL(e.target.files[0]);
+        },
         //Función que se encarga de agregar un producto al sistema
         AgregarProducto(){
             this.$v.$touch()
@@ -446,6 +487,9 @@ export default {
                 this.axios.post('api/agregaProducto', {codigoBarra: this.codigoAgregar, nomProducto: this.productoAgregar, marca: this.marcaAgregar, descripcion: this.descripcionAgrega, stock: this.stockAgrega}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
+                        if(this.imagen !== null){
+                            this.subirImagen();
+                        }
                         this.agregarStock();
                     }else{
                         Swal.fire({
@@ -466,6 +510,25 @@ export default {
                     })
             }else{
                 this.alerta('danger', 'Porfavor ingrese todos los campos requeridos');
+            }
+        },
+        //SUBIR IMAGEN del nuevo producto
+        subirImagen(){
+            if(this.imagen !== null){
+                const formData = new FormData()
+                formData.append('image', this.imagen)
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.put(`api/subirImagen/${this.codigoAgregar}`, formData, config)
+                    .then(res => {
+                        this.alerta('success', 'Se ha logrado subir la imagen')
+                    })
+                    .catch(e => {
+                        this.alerta('danger', 'No se ha logrado subir la imagen')
+                    })
             }
         },
         //Funcion que agrega el stock del Producto
@@ -541,6 +604,22 @@ export default {
             this.stockREG = data.stock
             this.ObtenerStockCritico();
         },
+        //Función que obtiene una imagen
+        obtenerImagenes(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+             this.axios.get(`api/obtenerImagen`, config)
+                .then(res => {
+                    this.imagenes = res.data
+                })
+                .catch(e => {
+                    this.alerta('danger', 'Este producto no posee imagen o no ha cargado correctamente')
+                })
+
+        },
         //Función que recarga la función siguiente paraq un stock Critico
         recargarCritico(){
             this.ObtenerStockCritico();
@@ -560,6 +639,11 @@ export default {
                 this.alerta('danger', 'No se ha logrado cargar el stock Critico');
             })
         },
+        CargaImagenEditar(e){
+            this.imagen = e.target.files[0]
+            var imagenEdita = document.getElementById('imagenEdita');
+            imagenEdita.src = URL.createObjectURL(e.target.files[0]);
+        },
         //Editar un producto 
         EditarProducto(){
             this.$v.$touch()
@@ -572,6 +656,10 @@ export default {
                 this.axios.put(`api/editarProducto/${this.codigoBarra}`, {nomProducto: this.producto, marca: this.marca, descripcion: this.descripcion, stock: this.stockREG}, config)
                     .then(res => {
                     if(!res.data.sqlMessage){
+                        if(this.imagen !== null){
+                            this.subirImagenEditar();
+                            this.obtenerImagenes();
+                        }
                         Swal.fire(
                         'Se ha editado al producto satisfactoriamente',
                         'Seleccione Ok para continuar',
@@ -591,6 +679,25 @@ export default {
                 })
             }else{
                 this.alerta('danger', 'Rellene todos los campos para editar el Producto')
+            }
+        },
+        //SUBIR IMAGEN de un producto existente
+        subirImagenEditar(){
+            if(this.imagen !== null){
+                const formData = new FormData()
+                formData.append('image', this.imagen)
+                let config = {
+                    headers: {
+                        token: this.token
+                    }
+                }
+                this.axios.put(`api/subirImagen/${this.codigoBarra}`, formData, config)
+                    .then(res => {
+                        this.alerta('success', 'Se ha logrado subir la imagen')
+                    })
+                    .catch(e => {
+                        this.alerta('danger', 'No se ha logrado subir la imagen')
+                    })
             }
         },
         //EDITAR EL STOCK CRITICO
@@ -766,6 +873,18 @@ export default {
     .boton{
         margin: 20px;
         width: 90%;
+        border-radius: 12px !important;
+        border-color: black !important;
+    }
+    .boton-grande{
+        width: 90%;
+        margin: 1px;
+        border-radius: 12px !important;
+        border-color: black !important;
+    }
+    .boton-margin{
+        width: 90%;
+        margin: 35px;
         border-radius: 12px !important;
         border-color: black !important;
     }

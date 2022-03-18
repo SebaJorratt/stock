@@ -134,6 +134,11 @@
                                     <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
                                 </b-col>
                             </b-row>
+                            <b-row class="mt-5">
+                                <b-col cols="12" md="12">
+                                    <img :src="imagenDir" id="imagenEdita">
+                                </b-col>
+                            </b-row>
                         </div>
                 </b-modal>
             </b-container>
@@ -162,6 +167,7 @@ export default {
         productos: [{key: 1, nomProducto: '', cantidad: 0, stock: 0, codigoBarra: '', codBar: '', marca: '', vacio: '', descripcion: ''}],
         prods: [],
         productoAnt: '',
+        imagenes: [],
         //Variable para las dependencias 
         dependencias: [],
         dependencia: '',
@@ -179,7 +185,9 @@ export default {
         descripcion: '',
         memo: 1,
         ticket: '',
-        referencia: ''
+        referencia: '',
+        imagen: null,
+        imagenDir: '',
       }
     },
     validations:{
@@ -195,6 +203,7 @@ export default {
         this.cargarProductos(true);
         this.cargarDependencias();
         this.obtenerUltimoMemo();
+        this.obtenerImagenes();
     },
     methods:{
         //Obtener ultimo memo
@@ -526,6 +535,14 @@ export default {
                     this.producto = res.data[0].nomProducto;
                     this.marca = res.data[0].marca;
                     this.descripcion = res.data[0].descripcion
+                    for(var i = 0; i<this.imagenes.length; i++){
+                        if(this.imagenes[i].split('.')[0] == this.codigo){
+                            this.imagenDir = 'http://localhost:3000/dbImagenes/' + this.imagenes[i]
+                            break;
+                        }else{
+                            this.imagenDir = 'http://localhost:3000/dbImagenes/no-imagen.png'
+                        }
+                    }
                 })
                 .catch(e => {
                     Swal.fire({
@@ -535,6 +552,22 @@ export default {
                     footer: 'Posible error del sistema'
                     })
                 })
+        },
+        //Función que obtiene una imagen
+        obtenerImagenes(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+             this.axios.get(`api/obtenerImagen`, config)
+                .then(res => {
+                    this.imagenes = res.data
+                })
+                .catch(e => {
+                    this.alerta('danger', 'Este producto no posee imagen o no ha cargado correctamente')
+                })
+
         },
         s2ab(s) {
             var buf = new ArrayBuffer(s.length);

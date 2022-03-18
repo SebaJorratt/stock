@@ -143,6 +143,11 @@
                                 <textarea disabled type="text" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" v-model="descripcion"></textarea>
                             </b-col>
                         </b-row>
+                        <b-row class="mt-5">
+                            <b-col cols="12" md="12">
+                                <img :src="imagenDir" id="imagenEdita">
+                            </b-col>
+                        </b-row>
                     </div>
                 </b-modal>
 
@@ -298,6 +303,7 @@ export default {
         ordenes: [],
         detalleOrden: [],
         enviar: [],
+        imagenes: [],
         //Variables del AGREGAR
         nuevaBodega: '',
         //Variable para reconocer una bodega
@@ -315,6 +321,8 @@ export default {
         producto: '',
         marca: '',
         descripcion: '',
+        imagen: null,
+        imagenDir: '',
         //VARIABLES PARA AGREGAR UN NUEVO PRODUCTO
         productoAGREGADO: '',
         nombreProductoAGREGADO: '',
@@ -342,6 +350,7 @@ export default {
     },
     created(){
         this.cargarBodegas();
+        this.obtenerImagenes();
     },
     methods:{
         //METODOS PARA GENERAR LAS ORDENES DE COMPRA
@@ -551,6 +560,14 @@ export default {
                     this.producto = res.data[0].nomProducto;
                     this.marca = res.data[0].marca;
                     this.descripcion = res.data[0].descripcion
+                    for(var i = 0; i<this.imagenes.length; i++){
+                        if(this.imagenes[i].split('.')[0] == this.codigo){
+                            this.imagenDir = 'http://localhost:3000/dbImagenes/' + this.imagenes[i]
+                            break;
+                        }else{
+                            this.imagenDir = 'http://localhost:3000/dbImagenes/no-imagen.png'
+                        }
+                    }
                 })
                 .catch(e => {
                     Swal.fire({
@@ -560,6 +577,22 @@ export default {
                     footer: 'Posible error del sistema'
                     })
                 })
+        },
+        //Función que obtiene una imagen
+        obtenerImagenes(){
+            let config = {
+                headers: {
+                    token: this.token
+                }
+            }
+             this.axios.get(`api/obtenerImagen`, config)
+                .then(res => {
+                    this.imagenes = res.data
+                })
+                .catch(e => {
+                    this.alerta('danger', 'Este producto no posee imagen o no ha cargado correctamente')
+                })
+
         },
         convertDateMysql(yourDate){
             yourDate.toISOString().split('T')[0]
