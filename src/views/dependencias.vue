@@ -134,7 +134,7 @@
                 </div>
                 <b-row v-if="pestaña === 'historial'">
                     <b-col cols="12" md="12">
-                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Productos</b-button>
+                        <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Dependencias</b-button>
                     </b-col>
                 </b-row>
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="historial" v-if="pestaña === 'historial'">
@@ -211,7 +211,7 @@ export default {
         detalleHist: [],
         comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
                 'Punitaqui', 'Río Hurtado'],
-        tipos: ['MDS', 'Alternativo', 'Otro Tipo'],
+        tipos: ['Clásico AD', 'Alternativo FAMILIAR', 'Alternativo LABORAL', 'PMI', 'CECI'],
         //Variables del AGREGAR
         codDependenciaAgregar: '',
         nomDependenciaAgregar: '',

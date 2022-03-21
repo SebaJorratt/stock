@@ -105,10 +105,7 @@
                             </b-col>
                         </b-row>
                         <b-row>
-                            <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar Informe</b-button>
-                        </b-row>
-                        <b-row>
-                            <b-button @click="renderDoc()" class="btn-success btn boton mt-5">Generar MEMO</b-button>
+                            <b-button @click="generarInforme()" class="btn-success btn boton mt-5">Generar MEMO</b-button>
                         </b-row>
                     </div>
                 </b-modal>
@@ -582,17 +579,18 @@ export default {
                     token: this.token
                 }
             }
+            var nMemo = this.memo+1
             var date = new Date()
             var dt = date.getDate() + "-" + (date.getMonth() + 1) + "-" + date.getFullYear()
             const index = this.dependencias.findIndex(item => item.nomDependencia == this.dependencia);
-            this.axios.post('api/obtenerMemo', {productos: this.productos, dependencia: this.dependencia, codDependencia: this.dependencias[index].codDependencia, comuna: this.dependencias[index].comuna, fecha: dt.toString(), referencia: this.referencia, ticket: this.ticket, memo: this.memo+1}, config)
+            this.axios.post('api/obtenerMemo', {productos: this.productos, dependencia: this.dependencia, codDependencia: this.dependencias[index].codDependencia, comuna: this.dependencias[index].comuna, fecha: dt.toString(), referencia: this.referencia, ticket: this.ticket, memo: nMemo}, config)
                 .then(res => {
                     var blob = new Blob([this.s2ab(res.data)], {type: ''});
                     let url = window.URL.createObjectURL(blob); // 3. Crea un punto de URL temporal al objeto Blob
                     // 4. Puede simular una gama de operaciones para este objeto de archivo después de crear una URL, por ejemplo: vista previa, descargar
                     let a = document.createElement("a");
                     a.href = url;
-                    a.download = "Formulario de exportación.xlsx";
+                    a.download = "MEMO" + nMemo + ".xlsx";
                     a.click();
                     // 5. Liberar esta URL de objeto temporal
                     window.URL.revokeObjectURL(url);

@@ -17,7 +17,7 @@
             <div class="mt-1">
                 <b-row v-if="pestaña === 'bodegas'">
                     <b-col cols="12" md="6">
-                        <b-button @click="ActCrear()" class="btn-success btn boton mt-5">Rellenar Bodega</b-button>
+                        <b-button @click="ActCrear()" class="btn-success btn boton mt-5">Generar Orden de Compra</b-button>
                     </b-col>
                     <b-col cols="12" md="6" v-if="agregar === 'no'">
                         <b-button @click="ActAgregar()" variant="primary" class="btn boton mt-5">Agregar Bodega</b-button>
@@ -247,7 +247,7 @@
                         <b-row class="mt-2">
                             <b-col cols="12" md="4">
                                 <label for="exampleInputEmail1" class="form-label">Codigo del Producto</label>
-                                <input type="text" @input="buscarCodigoAGREGADO()" class="form-control" aria-describedby="emailHelp" v-model="$v.productoAGREGADO.$model">
+                                <input type="text" @input="buscarCodigoAGREGADO()" class="form-control" aria-describedby="emailHelp" v-model="productoAGREGADO">
                             </b-col>
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Producto</label>
@@ -606,7 +606,6 @@ export default {
             var sumaStockBodega = 0;
             var suma = 0;
             for(var i = 0; i < this.productos.length; i++){
-                sumaStockBodega = sumaStockBodega + this.productos[i].stock
                 suma = suma + this.productos[i].cantidad
             }
             this.$v.$touch()
@@ -621,7 +620,7 @@ export default {
                 confirmButtonText: '¡Si!'
                 }).then((result) => {
                     if (result.value) {
-                        if(sumaStockBodega > 0 && suma > 0){
+                        if(suma > 0){
                             let config = {
                                 headers: {
                                     token: this.token
@@ -649,8 +648,6 @@ export default {
                                 footer: 'Posible error del sistema'
                             })
                             }) 
-                        }else if(sumaStockBodega > 0){
-                            this.alerta('danger', 'No se encuentra stock disponible en bodega')
                         }else{
                             this.alerta('danger', 'No se ha ingresado ninguna cantidad')
                         }
