@@ -26,13 +26,13 @@
                 <table class="table table-striped table-dark table-responsive-lg table-responsive-md" id="productos" v-if="pestaña === 'productos'">
                   <thead>
                     <tr>
-                      <th scope="col">Producto</th>
+                      <th scope="col">Productos</th>
                       <th scope="col">Codigo de Barras</th>
                       <th scope="col">Marca</th>
                       <th scope="col">Stock DirecReg</th>
                       <th scope="col">Edición</th>
-                      <th scope="col">Historial Entregas</th>
-                      <th scope="col">Ordenes de compras</th>
+                      <th scope="col">Entregas</th>
+                      <th scope="col">Ordenes</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -105,7 +105,7 @@
                         </b-row>
                         <b-row class="mt-5">
                             <b-col cols="12" md="12">
-                                <img src="../assets/no-imagen.png" id="imagenAgrega">
+                                <img src="../assets/no-imagen.png" id="imagenAgrega" width="40%">
                             </b-col>
                         </b-row>
                         <b-row class="mt-5">
@@ -169,7 +169,7 @@
                         </b-row>
                         <b-row class="mt-5">
                             <b-col cols="12" md="12">
-                                <img :src="imagenDir" id="imagenEdita">
+                                <img :src="imagenDir" id="imagenEdita" width="40%">
                             </b-col>
                         </b-row>
                         <b-row class="mt-5">

@@ -145,7 +145,7 @@
                         </b-row>
                         <b-row class="mt-5">
                             <b-col cols="12" md="12">
-                                <img :src="imagenDir" id="imagenEdita">
+                                <img :src="imagenDir" id="imagenEdita" width="75%">
                             </b-col>
                         </b-row>
                     </div>
