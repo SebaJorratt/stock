@@ -47,6 +47,9 @@
                     </tr>
                   </tbody>
                 </table>
+                <br v-if="pestaña === 'productos'"><div class="mb-1">
+                    <b-button @click="exportar(1)" v-if="pestaña === 'productos'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <div class="card mt-5" v-if="pestaña === 'agregar'" style="border-color: black;">
                     <div class="card-header">
                         <h2>Agrega un Nuevo Producto</h2>
@@ -204,7 +207,9 @@
                     </tr>
                   </tbody>
                 </table>
-
+                <br v-if="pestaña === 'historial'"><div class="mb-1">
+                    <b-button @click="exportar(2)" v-if="pestaña === 'historial'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <b-row v-if="pestaña === 'detalleHist'">
                     <b-col cols="12" md="12">
                         <b-button @click="VolverHist()" class="btn btn boton mt-5">Volver al Historial</b-button>
@@ -228,7 +233,9 @@
                     </tr>
                   </tbody>
                 </table>
-
+                <br v-if="pestaña === 'detalleHist'"><div class="mb-1">
+                    <b-button @click="exportar(3)" v-if="pestaña === 'detalleHist'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <b-row v-if="pestaña === 'ordenes'">
                     <b-col cols="12" md="12">
                         <b-button @click="Volver()" class="btn btn boton mt-5">Volver a Productos</b-button>
@@ -254,7 +261,9 @@
                     </tr>
                   </tbody>
                 </table>
-
+                <br v-if="pestaña === 'ordenes'"><div class="mb-1">
+                    <b-button @click="exportar(4)" v-if="pestaña === 'ordenes'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <b-row v-if="pestaña === 'detalleOrden'">
                     <b-col cols="12" md="12">
                         <b-button @click="VolverORD()" class="btn btn boton mt-5">Volver al Historial</b-button>
@@ -278,6 +287,9 @@
                     </tr>
                   </tbody>
                 </table>
+                <br v-if="pestaña === 'detalleOrden'"><div class="mb-1">
+                    <b-button @click="exportar(5)" v-if="pestaña === 'detalleOrden'" class="btn-success boton">Exportar</b-button>
+                </div>
             </div>
         </b-container>
     </div>
@@ -294,6 +306,15 @@ import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
 
 import { mapState } from 'vuex'
+
+//EXCEL eXportación
+import * as XLSX from 'xlsx/xlsx.mjs';
+/* load 'fs' for readFile and writeFile support */
+import * as fs from 'fs';
+XLSX.set_fs(fs);
+/* load the codepage support library for extended support with older formats  */
+import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
+XLSX.set_cptable(cpexcel);
 
 export default {
     name: "about",
@@ -360,6 +381,53 @@ export default {
         this.obtenerImagenes();
     },
     methods:{
+        //Función que permite exportar las tablas en excel
+        exportar(num) {
+            let data = [];
+            var filename = "planilla";
+            if(num === 1){
+                var arreglado = this.productos.map( item => { 
+                    return { CodigoBarra: item.codigoBarra , Producto : item.nomProducto, Marca : item.marca, Stock : item.stock }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                filename = 'Productos'
+            }else if(num === 2){
+                var arreglado = this.historial.map( item => { 
+                    return { Memo: item.memo , Funcionario : item.nomFuncionario, Dependencia : item.nomDependencia, Fecha : item.fecha}; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                if(arreglado[0]){
+                    filename = 'Historial' + this.codigoBarra
+                }else{
+                    filename = 'Historial'
+                }
+            }else if(num === 3){
+                var arreglado = this.detalleHist.map( item => { 
+                    return { Producto: item.nomProducto , CodigoBarra : item.codigoBarra, Cantidad : item.cantidad }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                filename = 'Memo' + this.memoHist
+            }else if(num === 4){
+                var arreglado = this.ordenes.map( item => { 
+                    return { Código: item.codOrden , Bodega : item.nomBodega, Proveedor : item.proveedor, Fecha : item.fecha }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                if(arreglado[0]){
+                    filename = 'Ordenes' + this.codigoBarra
+                }else{
+                    filename = 'Ordenes'
+                }
+            }else if(num === 5){
+                var arreglado = this.detalleOrden.map( item => { 
+                    return { Producto: item.nomProducto , CodigoBarra : item.codigoBarra, Cantidad : item.cantidad }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                filename = 'Orden' + this.histo
+            }
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, data, filename);
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+        },
         //Funcion que carga todos los productos del sistema
         cargarProductos(){
             let config = {

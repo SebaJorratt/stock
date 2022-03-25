@@ -45,6 +45,9 @@
                     </tr>
                   </tbody>
                 </table>
+                <br v-if="pestaña === 'dependencias'"><div class="mb-1">
+                    <b-button @click="exportar(1)" v-if="pestaña === 'dependencias'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <div class="card mt-5" v-if="pestaña === 'agregar'" style="border-color: black;">
                     <div class="card-header">
                         <h2>Agregar una Dependencia</h2>
@@ -157,7 +160,9 @@
                     </tr>
                   </tbody>
                 </table>
-
+                <br v-if="pestaña === 'historial'"><div class="mb-1">
+                    <b-button @click="exportar(2)" v-if="pestaña === 'historial'" class="btn-success boton">Exportar</b-button>
+                </div>
                 <b-row v-if="pestaña === 'detalleHist'">
                     <b-col cols="12" md="12">
                         <b-button @click="VolverHist()" class="btn btn boton mt-5">Volver al Historial</b-button>
@@ -181,6 +186,9 @@
                     </tr>
                   </tbody>
                 </table>
+                <br v-if="pestaña === 'detalleHist'"><div class="mb-1">
+                    <b-button @click="exportar(3)" v-if="pestaña === 'detalleHist'" class="btn-success boton">Exportar</b-button>
+                </div>
             </div>
         </b-container>
     </div>
@@ -197,6 +205,16 @@ import "datatables.net-dt/css/jquery.dataTables.min.css"
 import $ from 'jquery'; 
 
 import { mapState } from 'vuex'
+
+//EXCEL eXportación
+import * as XLSX from 'xlsx/xlsx.mjs';
+/* load 'fs' for readFile and writeFile support */
+import * as fs from 'fs';
+XLSX.set_fs(fs);
+/* load the codepage support library for extended support with older formats  */
+import * as cpexcel from 'xlsx/dist/cpexcel.full.mjs';
+XLSX.set_cptable(cpexcel);
+
 export default {
     name: "about",
     components: {
@@ -252,6 +270,37 @@ export default {
         this.tipoAgregar = this.tipos[0];
     },
     methods:{
+        //Función que permite exportar las tablas en excel
+        exportar(num) {
+            let data = [];
+            var filename = "planilla";
+            if(num === 1){
+                var arreglado = this.dependencias.map( item => { 
+                    return { CodigoDependencia: item.codDependencia , Dependencia : item.nomDependencia, Tipo : item.tipo, Comuna : item.comuna, Direccion: item.direccion }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                filename = 'Dependencias'
+            }else if(num === 2){
+                var arreglado = this.historial.map( item => { 
+                    return { Memo: item.memo , Funcionario : item.nomFuncionario, Dependencia : item.nomDependencia, Fecha : item.fecha}; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                if(arreglado[0]){
+                    filename = 'Historial' + this.codDependencia
+                }else{
+                    filename = 'Historial'
+                }
+            }else if(num === 3){
+                var arreglado = this.detalleHist.map( item => { 
+                    return { Producto: item.nomProducto , CodigoBarra : item.codigoBarra, Cantidad : item.cantidad }; 
+                });
+                data = XLSX.utils.json_to_sheet(arreglado);
+                filename = 'Memo' + this.memoHist
+            }
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, data, filename);
+            XLSX.writeFile(workbook, `${filename}.xlsx`);
+        },
         //Función que carga todas las dependencias
         cargarDependencias(){
             let config = {
@@ -333,12 +382,12 @@ export default {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
-                            text: 'No se ha creado este nuevo tipo',
+                            text: 'No se ha creado la ubicación de la dependecia',
                             footer: 'Posible error del sistema'
                         })
                     })
             }else{
-                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos')
+                this.alerta('danger', 'Porfavor ingrese todos los campos requeridos, Asegurese de que la dirección solo posea letras')
             }
         },
         //Función que se encarga de agregar una nueva Dependencia
@@ -370,7 +419,7 @@ export default {
                         icon: 'error',
                         title: 'Oops...',
                         text: 'No se ha creado la nueva Dependencia',
-                        footer: 'Posible error del sistema'
+                        footer: 'Posible error del sistema, Asegurese de que el nombre de la Dependencia solo contenga letras'
                     })
                 })
         },
@@ -410,7 +459,7 @@ export default {
                         Swal.fire({
                             icon: 'error',
                             title: 'Oops...',
-                            text: 'No se ha creado la ubicacion Ingresada',
+                            text: 'No se ha creado la ubicacion Ingresada. Asegurese de que la dirección ingresada contenga letras',
                             footer: 'Posible error del sistema'
                         })
                     })
@@ -439,7 +488,7 @@ export default {
                 }
                 })
                 .catch(e => {
-                    this.alerta('danger', 'No se ha logrado editar a la Dependencia');
+                    this.alerta('danger', 'No se ha logrado editar a la Dependencia. Asegurese de haber ingresado el nombre de la dependencia correctamente');
                 })
         },
         //Ahora eliminamos la ubicacion que anteriormente estaba relacionada con esta dependencia
