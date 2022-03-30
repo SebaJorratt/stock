@@ -576,6 +576,9 @@ export default {
             if(this.enviar[index].stockBodega - parseInt(this.enviar[index].cantidad) < this.enviar[index].stockCritico){
                 this.alerta('danger', 'Si realiza esta acción el stock en bodega del producto "' + this.enviar[index].nomProducto + '" sera inferior al stock crítico')
             }
+            if(this.enviar[index].stockBodega - parseInt(this.enviar[index].cantidad) < 0){
+                this.enviar[index].cantidad = this.enviar[index].stockBodega
+            }
         },
         //Función que maneja valores del input de stock de bodega PARA AGREGAR UN PRODUCTO A UNA NUEVA BODEGA
         cantMinBodegaAgregar(){
