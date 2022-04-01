@@ -19,13 +19,17 @@
                     </div>
                     <div class="card-body">
                         <b-row class="mt-2">
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
                                 <select class="form-control" @change="cambiaDep()" v-model="$v.dependencia.$model">
                                     <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
-                            <b-col cols="12" md="4">
+                            <b-col cols="12" md="2">
+                                <label for="exampleInputEmail1" class="form-label">Codigo Jardín</label>
+                                <input disabled type="text" class="form-control" id="nomFuncionarioAgrega" aria-describedby="emailHelp" v-model="codigoJardin">
+                            </b-col>
+                            <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Funcionario</label>
                                 <select class="form-control" v-model="funcionario">
                                     <option v-for="i in funcionarios" :key="i.nomFuncionario" :value="i.nomFuncionario">{{i.nomFuncionario}}</option>
@@ -168,6 +172,7 @@ export default {
         //Variable para las dependencias 
         dependencias: [],
         dependencia: '',
+        codigoJardin: '',
         //Variables para indicar al funcionario
         funcionarios: [],
         funcionario: '',
@@ -258,6 +263,7 @@ export default {
             .then(res => {
                 this.dependencias = res.data;
                 this.dependencia = this.dependencias[0].nomDependencia;
+                this.codigoJardin = res.data[0].codDependencia
                 this.cargarFuncionarios();
             })
             .catch(e => {
@@ -267,6 +273,8 @@ export default {
         //Función que carga los funcionarios al cambiar la dependencia
         cambiaDep(){
             this.cargarFuncionarios();
+            const index = this.dependencias.findIndex(item => item.nomDependencia == this.dependencia);
+            this.codigoJardin = this.dependencias[index].codDependencia
         },
         //Función que se encarga de cargar a los funcionarios encargados de la dependencia indicada
         cargarFuncionarios(){

@@ -439,7 +439,7 @@ export default {
             this.axios.get(`api/obtenerProductosBodega/${this.nomBodega}`, config)
             .then(res => {
                 for(var i = 0; i<res.data.length; i++){
-                    this.enviar.push({codigoBarra: res.data[i].codigoBarra, nomProducto: res.data[i].nomProducto, stock: res.data[i].stock, stockBodega: res.data[i].stockBodega, cantidad: 1, stockCritico: res.data[i].stockCritico})
+                    this.enviar.push({codigoBarra: res.data[i].codigoBarra, nomProducto: res.data[i].nomProducto, stock: res.data[i].stock, stockBodega: res.data[i].stockBodega, cantidad: 0, stockCritico: res.data[i].stockCritico})
                 }
             })
             .catch(e => {

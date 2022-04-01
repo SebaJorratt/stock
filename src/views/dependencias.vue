@@ -229,7 +229,7 @@ export default {
         detalleHist: [],
         comunas: ['Canela', 'Illapel', 'Los Vilos', 'Salamanca', 'Andacollo', 'Coquimbo', 'La Higuera', 'La Serena', 'Paihuano', 'Vicuña', 'Combarbalá', 'Monte Patria', 'Ovalle',
                 'Punitaqui', 'Río Hurtado'],
-        tipos: ['Clásico AD', 'Alternativo FAMILIAR', 'Alternativo LABORAL', 'PMI', 'CECI'],
+        tipos: ['Clásico AD', 'Alternativo FAMILIAR', 'Alternativo LABORAL', 'PMI', 'CECI', 'Dirección Regional', 'Jardín Comunicacional', 'Jardín Familiar', 'Jardín Infantil Clásico', 'Jardín Laboral', 'MDS'],
         //Variables del AGREGAR
         codDependenciaAgregar: '',
         nomDependenciaAgregar: '',
