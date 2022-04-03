@@ -55,7 +55,6 @@ export default {
       if(!this.$v.$invalid){
         this.axios.post('/auth/login', {correo: this.correo, password: this.password})
           .then(res => {
-            console.log(res.data)
             const token = res.data.token;
             this.guardarUsuario(token);
           })

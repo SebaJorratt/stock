@@ -67,7 +67,7 @@
                             <b-col cols="12" md="3">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
                                 <select class="form-control" @change="cambiaJardin()" v-model="dependenciaAgregar">
-                                    <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
+                                    <option v-for="i in dependencias" :key="i.codDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="2">
@@ -119,7 +119,7 @@
                             <b-col cols="12" md="5">
                                 <label for="exampleInputEmail1" class="form-label">Dependencia</label>
                                 <select class="form-control" @change="cambiaJardinEditar()" v-model="dependencia">
-                                    <option v-for="i in dependencias" :key="i.nomDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
+                                    <option v-for="i in dependencias" :key="i.codDependencia" :value="i.nomDependencia">{{i.nomDependencia}}</option>
                                 </select>
                             </b-col>
                             <b-col cols="12" md="2">
