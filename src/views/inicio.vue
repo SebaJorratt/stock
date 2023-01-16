@@ -6,7 +6,6 @@
           <div class="col-12 col-md-8 col-lg-6 col-xl-5">
             <div class="card shadow-2-strong" style="border-radius: 1rem;">
               <div class="card-body p-5 text-center">
-                <img src="../assets/junji-2.png" alt="" width="150px" class="imagen p-1">
                 <h3 class="mb-4">Sistema de stock</h3>
 
                 <div class="form-outline mb-4">
