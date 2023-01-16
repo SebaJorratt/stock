@@ -4,8 +4,6 @@
             <b-navbar toggleable="md" type="dark" variant="success">
                 <b-container>
                     <b-navbar-toggle target="nav-collapse"></b-navbar-toggle>
-                    
-                    <router-link to="/menu"> <img src="../assets/logoborde.png" alt="" width="50px" class="iconJunji">  <b-navbar-brand > Sistema de Stock</b-navbar-brand></router-link> 
                      <b-collapse id="nav-collapse" is-nav>
                          <b-navbar-nav>
                             <b-nav-item :to="{name: 'insumos'}">Entrega de Insumos </b-nav-item>
